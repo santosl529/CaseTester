@@ -16,7 +16,7 @@ import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { PlainPoint } from '@/lib/scoring/judge';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
 import { CaseCompare } from '@/components/case-compare';
-import { CaseNextSteps } from '@/components/case-next-steps';
+import { CaseNextSteps, NextStepsLink, hasNextStepsSection } from '@/components/case-next-steps';
 import type { ReportDrillsView } from '@/lib/drills/progress/report-view';
 
 // A rating's pill (Matt, 7 Nov): Strong in Mastery green, Adequate in Sky,
@@ -122,6 +122,9 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
           </div>
         </section>
       )}
+
+      {/* S7 (Matt, 21 Nov): the way down to Your next steps, under the top improvement. */}
+      {hasNextStepsSection(drills?.nextSteps) && <NextStepsLink />}
 
       {drills?.comparison && <CaseCompare comparison={drills.comparison} />}
 

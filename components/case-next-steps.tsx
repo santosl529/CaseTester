@@ -3,18 +3,36 @@ import { StartSetButton } from '@/components/drills/start-set-button';
 import { TrackedLink } from '@/components/tracked-link';
 import { PrepareNextSteps } from '@/components/prepare-next-steps';
 import type { NextStepsView } from '@/lib/drills/progress/report-view';
+import { coveredBy, practicedSkills, type NextStepsSnapshot } from '@/lib/drills/next-steps';
 
 // "Your next steps" at the end of a case report (Matt, 15 Nov; proposal §3,
 // wording approved with his edits). The list is fixed when the case result
 // arrived; "done" and readiness come only from drill results. Shown only when
 // CASE_TO_DRILLS is on (lib/drills/progress/report-view.ts).
 
+// S8 (Matt, 21 Nov; text for his approval): a skill whose practice set an earlier skill's set covers.
+export const coveredLine = (s: NextStepsSnapshot, coverId: string) => {
+  const cover = s.skills.find(k => k.skill_id === coverId);
+  return `The ${cover?.practice?.drill_name ?? 'practice'} set above covers this too.`;
+};
 const COUNT = ['', 'The skill that would most improve your next case.', 'The two skills that would most improve your next case, most important first.', 'The three skills that would most improve your next case, most important first.'];
 const WHEN_DONE = ['', 'When it is done, try', 'When both are done, try', 'When all three are done, try'];
 const lessonHref = (skillId: string, caseId: string) => `/drills/learn/${encodeURIComponent(skillId)}?source=case_report&case=${caseId}`;
 
 function Quote({ text, onPaper = false }: { text: string; onPaper?: boolean }) {
   return <blockquote className={`t-small mt-1 rounded-window px-3 py-2 text-ink/85 ${onPaper ? 'bg-white' : 'bg-paper'}`}>“{text}”</blockquote>;
+}
+
+// The report's jump link to this section (Matt, 21 Nov, pre-pilot audit S7: "Your next steps" was 17 phone screens
+// down, after the eight dimension cards). Shown wherever the section has a heading (not the demo's one line).
+export const NEXT_STEPS_ANCHOR = 'your-next-steps';
+export const hasNextStepsSection = (view: NextStepsView | null | undefined) => Boolean(view && view.state !== 'demo');
+export function NextStepsLink() {
+  return (
+    <p className="t-small">
+      <a href={`#${NEXT_STEPS_ANCHOR}`} className="font-semibold text-cobalt underline-offset-4 hover:underline">Your next steps <span aria-hidden="true">↓</span></a>
+    </p>
+  );
 }
 
 export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessionId: string }) {
@@ -26,7 +44,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
   }
   if (view.state !== 'ready') {
     return (
-      <section aria-labelledby="next-steps" className="space-y-3">
+      <section id="your-next-steps" aria-labelledby="next-steps" className="scroll-mt-20 space-y-3">
         <h2 id="next-steps" className="t-heading font-semibold">Your next steps</h2>
         <PrepareNextSteps sessionId={sessionId} state={view.state} />
       </section>
@@ -34,7 +52,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
   }
   const { snapshot: s, caseAttemptId } = view;
   const done = new Set(view.done);
-  const practiced = s.skills.filter(x => x.practice);
+  const practiced = practicedSkills(s);
   const nextCase = view.nextCase === 'all_taken' ? (
     <p className="t-small">You’ve taken every case. Retake one?</p>
   ) : view.nextCase ? (
@@ -47,7 +65,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
   );
 
   return (
-    <section aria-labelledby="next-steps" className="space-y-5">
+    <section id="your-next-steps" aria-labelledby="next-steps" className="scroll-mt-20 space-y-5">
       <div className="space-y-1">
         <h2 id="next-steps" className="t-heading font-semibold">Your next steps</h2>
         {s.skills.length > 0 && <p className="t-small text-ink/70">{COUNT[s.skills.length]}</p>}
@@ -82,11 +100,12 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
                   <>
                     <StartSetButton label="Start practice" name={`Start practice: ${x.name}, about ${x.practice.minutes} minutes`}
                       variant={i === 0 ? 'default' : 'outline'}
-                      body={{ prescription_id: x.prescription_id, report: { case_attempt_id: caseAttemptId, skill_id: x.skill_id } }}
+                      body={{ prescription_id: x.prescription_id, report: { case_attempt_id: caseAttemptId, skill_id: x.skill_id }, ...(coveredBy(s, x.skill_id).length > 0 && { also_skills: coveredBy(s, x.skill_id) }) }}
                       track={{ case_attempt_id: caseAttemptId, skill_id: x.skill_id, prescription_id: x.prescription_id, action: 'practice', position: i }} />
                     <span className="t-small text-ink/70">{x.practice.drill_name} · Level {x.practice.level} · about {x.practice.minutes} min</span>
                   </>
                 )}
+                {x.covered_by && <span className="t-small text-ink/70">{coveredLine(s, x.covered_by)}</span>}
               </div>
             </li>
           ))}

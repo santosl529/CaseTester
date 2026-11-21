@@ -203,6 +203,13 @@ export const CASE_SCREENS: Screen[] = [
     render: () => ({ node: <StatusScreen code="Error" title="Something went wrong." body="This page didn’t load. Try again, or go back to the homepage."><span className={buttonVariants({ size: 'lg' })}>Try again</span><Link href="/" className="link t-body">Go to the homepage</Link></StatusScreen> }),
   },
   { slug: 'report-unscored', path: '/case/preview-unscored/report', area: 'Feedback', title: 'Feedback report, not prepared yet', render: () => ({ node: <UnscoredReportScreen sessionId="preview-unscored" caseTitle="Brew & Bean Profitability" /> }) },  reportWith('report-next-steps', 'Feedback report: your next steps (case results → drills on)', { comparison: COMPARISON, nextSteps: ready(SNAPSHOT) }),
+  // Pre-pilot audit S8 (Matt, 21 Nov): MECE structure and Case-specific structure both train on Spot the gap.
+  reportWith('report-next-steps-shared', 'Feedback report: two skills, one shared practice set (S8)', { comparison: null, nextSteps: ready({
+    ...SNAPSHOT, also: null, skills: [
+      { ...SNAPSHOT.skills[1], practice: { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 1, minutes: 6 } },
+      { skill_id: 'PS.case_specific', name: 'Case-specific structure', why: 'Your framework could have fit any case.', quote: 'I’d look at the market, the company, the customers and the competition', prescription_id: '00000000-0000-4000-8000-0000000000b4', lesson: { minutes: 3 }, practice: null, covered_by: 'PS.mece' },
+      SNAPSHOT.skills[0],
+    ] }, { done: [], minutes: 23 }) }),
   reportWith('report-next-steps-ready', 'Feedback report: every skill done, ready for the next case', { comparison: COMPARISON, nextSteps: ready({ ...SNAPSHOT, also: null }, { done: SNAPSHOT.skills.map(x => x.skill_id), ready: true }) }),
   reportWith('report-next-steps-clear', 'Feedback report: nothing needs practice', { comparison: null, nextSteps: ready({ ...SNAPSHOT, skills: [], also: null, all_clear: true }, { done: [], ready: true, nextCase: { title: 'Quillpath SaaS Starter Plan Pricing', difficulty: 'Hard' } }) }),
   reportWith('report-next-steps-partial', 'Feedback report: ended early, one skill, all cases taken', { comparison: null, nextSteps: ready({ ...SNAPSHOT, skills: [SNAPSHOT.skills[1]], also: null, partial: true }, { done: [], minutes: 13, nextCase: 'all_taken', strengths: [] }) }),

@@ -41,10 +41,10 @@ export async function recordNextSteps(payload: CaseResultPayload, retake: boolea
     loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
     db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
   ]);
-  const practice = new Map<string, { drill_name: string; level: number; minutes: number }>();
+  const practice = new Map<string, { drill_name: string; level: number; minutes: number; drill_id: string }>();
   for (const r of ranked) {
     const next = nextSetFor(progress.get(r.skill_id) ?? newProgress(r.skill_id), tiers, ctx);
-    if (next) practice.set(r.skill_id, { drill_name: getDrill(next.drill_id).name, level: next.tier, minutes: Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1))) });
+    if (next) practice.set(r.skill_id, { drill_id: next.drill_id, drill_name: getDrill(next.drill_id).name, level: next.tier, minutes: Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1))) });
   }
 
   const snapshot = buildNextSteps({

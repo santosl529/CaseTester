@@ -140,6 +140,8 @@ export const StartSetSchema = z.object({
   set_aside: z.uuid().optional(),
   // Resume a set the student set aside (Today's Unfinished row, the set's own page).
   resume_set_id: z.uuid().optional(),
+  // Other weak spots this set covers (a case report's next steps, S8): a generated drill's items target them too.
+  also_skills: z.array(z.string()).max(3).optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined || b.resume_set_id,
   'skill_id, drill_id, prescription_id, workout_id, diagnostic_part or resume_set_id is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
@@ -164,6 +166,8 @@ interface SetChoice {
   check?: boolean;
   // The set already attached to this workout block or diagnostic part, if any: starting the block again resumes it.
   ownSetId?: string | null;
+  // Other skills the set covers (S8): from the workout block, or the report's next steps.
+  alsoSkills?: string[];
 }
 
 async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<SetChoice> {
@@ -195,6 +199,7 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
       drill, tier: block.tier as Tier, source: block.kind === 'review' ? 'review' : 'continue', prescriptionId: block.prescription_id,
       focusSkill: block.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? state?.tag ?? null), kind: block.kind, size: block.size,
       workoutId: w.id, block: input.block, slot: block.slot, check: block.check === true, ownSetId: block.set_id ?? null,
+      alsoSkills: block.also_skills,
     };
   }
   if (input.quick_start) {
@@ -374,7 +379,8 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   let plan: ItemRef[];
   if (drill.item_source === 'generated') {
-    plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag });
+    const also = (choice.alsoSkills ?? input.also_skills ?? []).filter(k => k !== choice.focusSkill && drill.skills.includes(k));
+    plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag, alsoSkills: also });
   } else {
     plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null, defend);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');

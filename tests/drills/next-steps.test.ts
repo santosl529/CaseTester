@@ -82,3 +82,44 @@ describe('a report with no stored next steps (fixed 16 Nov: "Preparing" forever)
     expect(pendingNextSteps({ demo: false, run: on('applied'), scoredAt: ago(STEP_WAIT_MS + 1), now })).toBeNull();
   });
 });
+
+// Pre-pilot audit S8 (Matt, 21 Nov): two listed skills whose practice is the same drill and level share one set.
+describe('the same drill twice (S8)', () => {
+  const both = () => buildNextSteps({
+    ...base,
+    practice: new Map([
+      ['PS.mece', { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 1, minutes: 6 }],
+      ['PS.case_specific', { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 1, minutes: 6 }],
+      ['QN.percentages', { drill_id: 'QN-3', drill_name: 'Mental math', level: 2, minutes: 8 }],
+    ]),
+    payload: payload([f('M.overlapping_buckets', 'major', 'a'), f('M.generic_framework', 'major', 'b'), f('M.percent_vs_points', 'minor', 'c')]),
+    ranked: [
+      { id: 'rx-p', skill_id: 'PS.mece', priority: 4, evidence: null },
+      { id: 'rx-c', skill_id: 'PS.case_specific', priority: 3, evidence: null },
+      { id: 'rx-q', skill_id: 'QN.percentages', priority: 1, evidence: null },
+    ],
+  });
+  it('lists the second skill without its own practice set, covered by the first', () => {
+    const s = both();
+    expect(s.skills.map(x => [x.skill_id, x.practice?.drill_name ?? null, x.covered_by ?? null])).toEqual([
+      ['PS.mece', 'Spot the gap', null], ['PS.case_specific', null, 'PS.mece'], ['QN.percentages', 'Mental math', null],
+    ]);
+    // The shared set's minutes count once.
+    expect(totalMinutes(s)).toBe(3 + 6 + 3 + 8);   // two lessons, Spot the gap once, Mental math
+  });
+  it('ticks the covered skill when the shared set passes; ready needs every skill', () => {
+    const s = both();
+    expect(nextStepsStatus(s, new Set(['PS.mece']))).toEqual({ done: new Set(['PS.mece', 'PS.case_specific']), ready: false });
+    expect(nextStepsStatus(s, new Set(['PS.mece', 'QN.percentages'])).ready).toBe(true);
+    expect(nextStepsStatus(s, new Set(['PS.case_specific'])).done).toEqual(new Set(['PS.case_specific']));
+  });
+  it('a different level is a different set', () => {
+    const s = buildNextSteps({
+      ...base,
+      practice: new Map([['PS.mece', { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 1, minutes: 6 }], ['PS.case_specific', { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 2, minutes: 6 }]]),
+      payload: payload([f('M.overlapping_buckets', 'major', 'a'), f('M.generic_framework', 'major', 'b')]),
+      ranked: [{ id: 'rx-p', skill_id: 'PS.mece', priority: 4, evidence: null }, { id: 'rx-c', skill_id: 'PS.case_specific', priority: 3, evidence: null }],
+    });
+    expect(s.skills.every(x => x.practice && !x.covered_by)).toBe(true);
+  });
+});

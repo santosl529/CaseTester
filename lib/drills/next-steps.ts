@@ -24,7 +24,10 @@ export type NextStepSkill = {
   quote: string;          // the student's own words
   prescription_id: string;
   lesson: { minutes: number } | null;
-  practice: { drill_name: string; level: number; minutes: number } | null;
+  practice: { drill_name: string; level: number; minutes: number; drill_id?: string } | null;
+  // Pre-pilot audit S8 (Matt, 21 Nov): this skill's practice set is the same drill and level as an earlier listed
+  // skill's, so that one set covers both: no second Start practice; done when either passes.
+  covered_by?: string;
 };
 export type NextStepAlso = { skill_id: string; name: string; why: string; quote: string; lesson: { minutes: number } | null; tip: string | null };
 export type NextStepsSnapshot = {
@@ -58,20 +61,24 @@ export function buildNextSteps(input: {
   // This case's prescriptions, in the shared ranking's order (sharedRanking).
   ranked: CaseRx[];
   lessons: Map<string, { words: number }>;
-  practice: Map<string, { drill_name: string; level: number; minutes: number }>;
+  practice: Map<string, { drill_name: string; level: number; minutes: number; drill_id?: string }>;
   hasLiveDrill: (skillId: string) => boolean;
 }): NextStepsSnapshot {
   const findings = input.payload.findings;
-  const skills: NextStepSkill[] = input.ranked.slice(0, NEXT_STEPS_MAX).flatMap(rx => {
+  const skills: NextStepSkill[] = [];
+  for (const rx of input.ranked.slice(0, NEXT_STEPS_MAX)) {
     const lead = leadFinding(findings, rx.skill_id);
-    if (!lead) return [];
+    if (!lead) continue;
     const lesson = input.lessons.get(rx.skill_id);
-    return [{
+    const practice = input.practice.get(rx.skill_id) ?? null;
+    // The same drill at the same level as an earlier skill's: that set covers this one too (S8).
+    const cover = practice && skills.find(k => k.practice && !k.covered_by && sameSet(k.practice, practice));
+    skills.push({
       skill_id: rx.skill_id, name: getSkill(rx.skill_id).name, why: reasonLine(lead.tag), quote: lead.evidence,
       prescription_id: rx.id, lesson: lesson ? { minutes: lessonMinutes(lesson.words) } : null,
-      practice: input.practice.get(rx.skill_id) ?? null,
-    }];
-  });
+      practice: cover ? null : practice, ...(cover && { covered_by: cover.skill_id }),
+    });
+  }
 
   // The weightiest finding on a skill with no live drill, kept if it weighs at least as much as the lowest skill listed.
   const noDrill = new Map<string, number>();
@@ -101,10 +108,19 @@ export function buildNextSteps(input: {
 // case (every listed skill with a drill is done; nothing to practice counts as
 // ready). `passed`: skills with a passing set completed after the case.
 export function nextStepsStatus(snapshot: NextStepsSnapshot, passed: Set<string>) {
-  const practiced = snapshot.skills.filter(s => s.practice);
+  const practiced = practicedSkills(snapshot);
   const done = new Set(practiced.filter(s => passed.has(s.skill_id)).map(s => s.skill_id));
+  // A covered skill (S8) is done when its own skill or the covering one has passed a set.
+  for (const s of practiced) if (s.covered_by && done.has(s.covered_by)) done.add(s.skill_id);
   return { done, ready: practiced.every(s => done.has(s.skill_id)) };
 }
+
+// The listed skills with practice: their own set, or one an earlier skill's set covers (S8).
+export const practicedSkills = (snapshot: NextStepsSnapshot) => snapshot.skills.filter(s => s.practice || s.covered_by);
+// The skills a listed skill's set also covers.
+export const coveredBy = (snapshot: NextStepsSnapshot, skillId: string) => snapshot.skills.filter(s => s.covered_by === skillId).map(s => s.skill_id);
+const sameSet = (a: { drill_name: string; level: number; drill_id?: string }, b: { drill_name: string; level: number; drill_id?: string }) =>
+  (a.drill_id && b.drill_id ? a.drill_id === b.drill_id : a.drill_name === b.drill_name) && a.level === b.level;
 
 // "About N minutes": every listed lesson and practice set.
 export const totalMinutes = (snapshot: NextStepsSnapshot) =>

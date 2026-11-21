@@ -194,3 +194,44 @@ describe('milestone first (Matt, 15 Nov, D6)', () => {
   });
 });
 
+
+// Pre-pilot audit S8 (Matt, 21 Nov): a case flags MECE structure and Case-specific structure; both train on Spot the gap.
+describe('never the same drill twice in a workout (S8)', () => {
+  it('two weak spots on one drill run as one set covering both; the slot goes to the next skill', () => {
+    const w = buildWorkout(input({
+      progress: progress({ skill_id: 'PS.mece', state: 'learning' }, { skill_id: 'PS.case_specific', state: 'learning' }, { skill_id: 'QN.setup', state: 'learning' }),
+      prescriptions: [rx('PS.mece', 4), rx('PS.case_specific', 3), rx('QN.setup', 1)],
+    }));
+    const drills = w.blocks.map(b => b.drill_id);
+    expect(new Set(drills).size).toBe(drills.length);
+    const shared = w.blocks.find(b => b.skill_id === 'PS.mece')!;
+    expect(shared.also_skills).toEqual(['PS.case_specific']);
+    expect(shared.reason).toBe('reason for PS.mece Also covers case-specific structure.');
+    expect(w.blocks.some(b => b.skill_id === 'QN.setup')).toBe(true);
+  });
+
+  it('a review or unfamiliar slot passes over a drill already in the workout', () => {
+    const w = buildWorkout(input({
+      progress: progress(
+        { skill_id: 'PS.case_specific', state: 'mastered', stage: 'recognize', next_review_at: ago(1), last_practiced_at: ago(15) },
+        { skill_id: 'PS.mece', state: 'learning' },
+        { skill_id: 'QN.setup', state: 'mastered', stage: 'construct', next_review_at: ago(2), last_practiced_at: ago(20) },
+      ),
+      tiers: { 'QN-4': 3 },
+      prescriptions: [rx('PS.mece', 2)],
+    }));
+    const drills = w.blocks.map(b => b.drill_id);
+    expect(new Set(drills).size).toBe(drills.length);
+  });
+
+  it('never merges into a quick check', () => {
+    const w = buildWorkout(input({
+      progress: progress({ skill_id: 'PS.mece', state: 'learning' }, { skill_id: 'PS.case_specific', state: 'learning' }),
+      prescriptions: [rx('PS.case_specific', 3)],
+      checks: ['PS.mece'],
+    }));
+    const check = w.blocks.find(b => b.check);
+    expect(check?.also_skills).toBeUndefined();
+    expect(new Set(w.blocks.map(b => b.drill_id)).size).toBe(w.blocks.length);
+  });
+});

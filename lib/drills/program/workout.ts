@@ -39,7 +39,13 @@ export interface WorkoutBlock {
   // A short check of a questionnaire placement (D6 round 2): its score
   // re-places the skill.
   check?: boolean;
+  // Weak spots on other skills this set covers (pre-pilot audit S8, Matt 21 Nov): two prescriptions on one drill run
+  // as one set, never the same drill twice. A generated drill's items target every skill listed.
+  also_skills?: string[];
 }
+
+// The merged block's reason gains a line per skill it also covers (S8).
+export const alsoCovers = (skillId: string) => `Also covers ${lowerName(skillId)}.`;
 
 export interface WorkoutInput {
   track: Exclude<Track, 'self_directed'>;
@@ -139,9 +145,21 @@ export function buildWorkout(input: WorkoutInput): Workout {
   const state = (id: string) => input.progress.get(id) ?? newProgress(id);
   const used = new Set<string>();
   const blocks: WorkoutBlock[] = [];
-  const take = (slot: Slot, p: SkillProgress, reason: string, prescription_id: string | null = null) => {
+  // Never the same drill twice in one workout (S8, Matt 21 Nov). A weak spot whose drill is already another weak
+  // spot's joins that set (one set covering both; `mergeable`); any other repeat is passed over, so its slot takes
+  // the next candidate.
+  const take = (slot: Slot, p: SkillProgress, reason: string, prescription_id: string | null = null, mergeable = false) => {
     const b = blockFor(p, input, slot);
     if (!b) return null;
+    const same = blocks.find(x => x.drill_id === b.drill_id);
+    if (same) {
+      if (mergeable && same.slot === 'weak' && same.prescription_id && !same.check) {
+        used.add(p.skill_id);
+        same.also_skills = [...(same.also_skills ?? []), p.skill_id];
+        same.reason = `${same.reason} ${alsoCovers(p.skill_id)}`;
+      }
+      return null;
+    }
     used.add(p.skill_id);
     const block = { ...b, slot, reason, prescription_id, set_id: null };
     blocks.push(block);
@@ -190,24 +208,27 @@ export function buildWorkout(input: WorkoutInput): Workout {
   for (const { rx } of ranked) {
     if (weakSets >= 2 || (weakSets >= 1 && weakMinutes >= weakBudget)) break;
     if (used.has(rx.skill_id) || transferDue(state(rx.skill_id), input)) continue;
-    const b = take('weak', state(rx.skill_id), rx.reason, rx.id);
+    const b = take('weak', state(rx.skill_id), rx.reason, rx.id, true);
     if (b) { weakMinutes += b.minutes; weakSets++; }
   }
 
   // Unfamiliar (25%): a due transfer check (it may run long).
-  const transfer = [...input.progress.values()].filter(p => !used.has(p.skill_id) && transferDue(p, input))
-    .sort((a, b) => (a.transfer_due_at?.getTime() ?? 0) - (b.transfer_due_at?.getTime() ?? 0))[0];
-  if (transfer) {
-    take('unfamiliar', { ...transfer, transfer_due_at: new Date(Math.min(now, transfer.transfer_due_at?.getTime() ?? now)) },
-      `Transfer check: ${lowerName(transfer.skill_id)} on cases you haven't seen.`);
+  const transfers = [...input.progress.values()].filter(p => !used.has(p.skill_id) && transferDue(p, input))
+    .sort((a, b) => (a.transfer_due_at?.getTime() ?? 0) - (b.transfer_due_at?.getTime() ?? 0));
+  let transfer: SkillProgress | undefined;
+  for (const t of transfers) {
+    if (take('unfamiliar', { ...t, transfer_due_at: new Date(Math.min(now, t.transfer_due_at?.getTime() ?? now)) },
+      `Transfer check: ${lowerName(t.skill_id)} on cases you haven't seen.`)) { transfer = t; break; }
   }
 
   // Review (25%): the most overdue Mastered or Validated skill; else the
   // Practiced or Mastered skill practiced longest ago.
   const due = strong.filter(p => !used.has(p.skill_id) && (p.state === 'mastered' || p.state === 'validated') && p.next_review_at && p.next_review_at.getTime() <= now)
     .sort((a, b) => a.next_review_at!.getTime() - b.next_review_at!.getTime());
-  const reviewPick = due[0] ?? strong.find(p => !used.has(p.skill_id) && !transferDue(p, input));
-  if (reviewPick) take('review', reviewPick, due[0] ? `Time to review ${lowerName(reviewPick.skill_id)}: ${daysSince(reviewPick, now)} days since you last practiced it.` : `Keeping ${lowerName(reviewPick.skill_id)} fresh.`);
+  const dueIds = new Set(due.map(p => p.skill_id));
+  for (const pick of [...due, ...strong.filter(p => !used.has(p.skill_id) && !dueIds.has(p.skill_id) && !transferDue(p, input))]) {
+    if (take('review', pick, dueIds.has(pick.skill_id) ? `Time to review ${lowerName(pick.skill_id)}: ${daysSince(pick, now)} days since you last practiced it.` : `Keeping ${lowerName(pick.skill_id)} fresh.`)) break;
+  }
 
   // Unfamiliar, when no transfer check is due: a half-size set on a skill at
   // Recognizes or above, from case types the student hasn't seen on it
@@ -215,14 +236,14 @@ export function buildWorkout(input: WorkoutInput): Workout {
   if (!transfer) {
     const fresh = [...input.progress.values()]
       .filter(p => !used.has(p.skill_id) && stateRank(p.state) >= stateRank('recognizes'))
-      .sort((a, b) => (a.last_practiced_at?.getTime() ?? 0) - (b.last_practiced_at?.getTime() ?? 0))[0];
-    if (fresh) take('unfamiliar', fresh, `${getSkill(fresh.skill_id).name} on a new kind of case.`);
+      .sort((a, b) => (a.last_practiced_at?.getTime() ?? 0) - (b.last_practiced_at?.getTime() ?? 0));
+    for (const f of fresh) if (take('unfamiliar', f, `${getSkill(f.skill_id).name} on a new kind of case.`)) break;
   }
 
   // Fewer than 2 sets: more weak spots.
   for (const { rx } of ranked) {
     if (blocks.length >= w.min_sets) break;
-    if (!used.has(rx.skill_id)) take('weak', state(rx.skill_id), rx.reason, rx.id);
+    if (!used.has(rx.skill_id)) take('weak', state(rx.skill_id), rx.reason, rx.id, true);
   }
   const order: Slot[] = ['review', 'weak', 'unfamiliar'];
   blocks.sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot));

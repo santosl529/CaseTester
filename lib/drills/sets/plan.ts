@@ -40,17 +40,23 @@ function cycle<T>(rng: Rng, items: T[], n: number): T[] {
 
 export function planGenerated(opts: {
   setId: string; drillId: string; size: number; focusSkill?: string | null; focusTag?: string | null;
+  // Other skills the set also covers (two weak spots on one drill, S8): the targeted share covers them all.
+  alsoSkills?: string[];
 }): ItemRef[] {
   const rng = createRng(hashSeed(opts.setId));
   const all = generatorsForDrill(opts.drillId);
   if (all.length === 0) throw new Error(`No generators for ${opts.drillId}`);
   // "70% of items target the prescribed skill, 30% mixed review" (QN-3), when
   // a focus narrows the templates at all.
-  const targeted = all.filter(g =>
-    opts.focusTag ? g.focus_tags.includes(opts.focusTag) : opts.focusSkill ? g.skills.includes(opts.focusSkill) : false);
-  const focused = targeted.length > 0 && targeted.length < all.length;
+  // Covering several skills (S8): the targeted share is split evenly between them, each from its own templates.
+  const skills = [opts.focusSkill, ...(opts.alsoSkills ?? [])].filter((x): x is string => Boolean(x));
+  const groups = opts.alsoSkills?.length
+    ? skills.map(k => all.filter(g => g.skills.includes(k))).filter(g => g.length > 0)
+    : [all.filter(g => opts.focusTag ? g.focus_tags.includes(opts.focusTag) : opts.focusSkill ? g.skills.includes(opts.focusSkill) : false)];
+  const focused = groups.some(g => g.length > 0 && g.length < all.length);
   const nTarget = focused ? Math.round(opts.size * DRILLS_CONFIG.rules.prescriptions.focus_item_share) : 0;
-  const picks = rng.shuffle([...cycle(rng, targeted, nTarget), ...cycle(rng, all, opts.size - nTarget)]);
+  const per = groups.map((_, i) => Math.floor(nTarget / groups.length) + (i < nTarget % groups.length ? 1 : 0));
+  const picks = rng.shuffle([...groups.flatMap((g, i) => cycle(rng, g, per[i])), ...cycle(rng, all, opts.size - nTarget)]);
   return picks.map(g => ({
     kind: 'generated', template_id: g.template_id, template_version: g.template_version, seed: rng.int(0, 2 ** 31 - 1),
   }));
