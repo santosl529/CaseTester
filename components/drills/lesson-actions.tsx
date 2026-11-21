@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { drillFetch } from '@/lib/drills/client-fetch';
+import { useStartSet } from './use-start-set';
 
 type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up' | 'case_report';
 
@@ -51,19 +51,12 @@ export function IntroLessonActions({ lessonId, version, source, next }: { lesson
 export function LessonActions({ lessonId, version, source, start, skippable, reportCase }: {
   lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean; reportCase?: string;
 }) {
-  const router = useRouter();
   const log = useLessonViewLog(lessonId, version, source, reportCase);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  async function go(skipped: boolean) {
+  const { start: startSet, busy, error, dialog } = useStartSet();
+  function go(skipped: boolean) {
+    if (busy) return;
     log(skipped);
-    setBusy(true);
-    const res = await drillFetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(start) });
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);
-    else setError(data.message ?? 'Could not start the set.');
+    void startSet(start);
   }
 
   return (
@@ -71,6 +64,7 @@ export function LessonActions({ lessonId, version, source, start, skippable, rep
       <Button size="lg" onClick={() => go(false)} disabled={busy}>Try it</Button>
       {skippable && <Button variant="ghost" onClick={() => go(true)} disabled={busy}>Skip the lesson</Button>}
       {error && <span role="alert" className="t-small text-alert">{error}</span>}
+      {dialog}
     </div>
   );
 }

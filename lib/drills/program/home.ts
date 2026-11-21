@@ -10,7 +10,7 @@ import { logDrillEvent } from '../events';
 import { newProgress, nextSetFor, stateRank, type SkillStateName } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import { openPrescriptions, skillProfile } from '../progress/profile';
-import { inProgressSet } from '../sets/service';
+import { inProgressSet, setAsideSets } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
@@ -63,6 +63,8 @@ export async function homeView(studentId: string, now = new Date()) {
   const plan = { source: program.planSource as PlanSource | null, seen: program.planSeenAt !== null };
   const [view, current, profile] = await Promise.all([programView(studentId, now), inProgressSet(studentId), skillProfile(studentId, now)]);
   const resume = current && current.source !== 'diagnostic' ? { set_id: current.id, drill_name: getDrill(current.drillId).name } : null;
+  // Sets set aside for another drill (Matt, 21 Nov), each with Resume.
+  const unfinished = await setAsideSets(studentId);
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
@@ -73,7 +75,7 @@ export async function homeView(studentId: string, now = new Date()) {
   const progress = await loadProgress(db, studentId);
   if (program.track === 'self_directed') {
     const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
-    return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
+    return { kind: 'self_directed' as const, resume, unfinished, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
   }
 
   const { timezone } = await studentToday(studentId, now);
@@ -113,7 +115,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, resume, unfinished, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

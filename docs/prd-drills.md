@@ -1559,6 +1559,7 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `drill_attempt_submitted` | An answer is submitted | attempt\_id, score, time\_ms, timed\_out, skipped, mistake\_tags |
 | `drill_set_completed` | Results are final | set\_id, set\_score, passed, duration\_ms, skill\_scores |
 | `drill_set_expired` | An unfinished set passes 24 hours | set\_id, items\_completed |
+| `drill_set_set_aside` / `drill_set_resumed` | A student sets an unfinished set aside to start another drill ("Start … instead"), or brings a set-aside set back (Resume, Continue workout, its diagnostic part) | set\_id, items\_completed, for\_drill\_id (set aside only: the drill started instead) |
 | `grading_job_completed` | An AI grading call finishes | job\_id, status, retries, latency\_ms, input\_tokens, output\_tokens, cost\_usd |
 | `answer_graded` | A grading job saves a written answer (graded, or left "Grading delayed") | attempt\_id, drill\_id, feedback\_mode, job (answer: graded as submitted; set: at the end), grading\_ms (the job's start to this answer's save), wait\_ms (submitted to saved), status (graded, not\_sent, or why it wasn't graded) |
 | `grading_injection_suspected` | Grader flags an instruction-like answer | attempt\_id |

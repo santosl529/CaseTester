@@ -156,7 +156,7 @@ export const analyticsEvents = pgTable('analytics_events', {
 
 export const itemStatusEnum = pgEnum('drill_item_status', ['draft', 'in_review', 'live', 'retired']);
 export const drillSetSourceEnum = pgEnum('drill_set_source', ['prescription', 'continue', 'specific', 'review', 'diagnostic', 'plan']);
-export const drillSetStatusEnum = pgEnum('drill_set_status', ['in_progress', 'grading', 'completed', 'expired']);
+export const drillSetStatusEnum = pgEnum('drill_set_status', ['in_progress', 'grading', 'completed', 'expired', 'set_aside']);
 export const attemptGradingStatusEnum = pgEnum('attempt_grading_status', ['not_needed', 'pending', 'graded', 'delayed', 'failed']);
 export const gradingJobStatusEnum = pgEnum('grading_job_status', ['queued', 'running', 'succeeded', 'failed']);
 export const skillStateEnum = pgEnum('skill_state', ['not_started', 'learning', 'recognizes', 'practiced', 'mastered', 'validated']);

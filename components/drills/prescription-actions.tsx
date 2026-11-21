@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { drillFetch } from '@/lib/drills/client-fetch';
+import { useStartSet } from './use-start-set';
 
 // Start or dismiss a prescription (docs/prd-drills.md "Lifecycle"). Starting
 // lets the progress engine pick the drill, stage and tier.
@@ -12,16 +13,8 @@ export function PrescriptionActions({ id, paused, extra = {}, startLabel }: { id
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  async function start() {
-    setBusy(true);
-    const res = await drillFetch('/api/drills/sets', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prescription_id: id, ...extra }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);
-    else setError(data.message ?? 'Could not start the set.');
-  }
+  const { start: startSet, busy: starting, error: startError, dialog } = useStartSet();
+  const start = () => startSet({ prescription_id: id, ...extra });
 
   async function dismiss() {
     setBusy(true);
@@ -36,9 +29,10 @@ export function PrescriptionActions({ id, paused, extra = {}, startLabel }: { id
   return (
     <span className="flex flex-wrap items-center gap-2">
       {/* Outline: these sit in lists, so a page keeps one primary button. */}
-      {!paused && <Button size="sm" variant="outline" onClick={start} disabled={busy}>{startLabel ?? 'Start'}</Button>}
-      <Button size="sm" variant="ghost" onClick={dismiss} disabled={busy}>Dismiss</Button>
-      {error && <span role="alert" className="t-label text-alert">{error}</span>}
+      {!paused && <Button size="sm" variant="outline" onClick={start} disabled={busy || starting}>{startLabel ?? 'Start'}</Button>}
+      <Button size="sm" variant="ghost" onClick={dismiss} disabled={busy || starting}>Dismiss</Button>
+      {(error || startError) && <span role="alert" className="t-label text-alert">{error || startError}</span>}
+      {dialog}
     </span>
   );
 }

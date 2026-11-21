@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getDrill } from '@/lib/drills/config';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
+import { unfinishedLine } from '@/components/drills/use-start-set';
 import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';
@@ -56,6 +57,17 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       You have a {home.resume.drill_name} set in progress.{' '}
       <Link href={`/drills/sets/${home.resume.set_id}`} className="link">Resume it</Link>
     </p>
+  );
+  // Sets set aside for another drill (Matt, 21 Nov): "Unfinished: Mental math · 2 of 6 done · Resume".
+  const unfinished = home.unfinished.length > 0 && (
+    <ul aria-label="Unfinished sets" className="space-y-2">
+      {home.unfinished.map(u => (
+        <li key={u.set_id} className="t-small flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-panel bg-sky/60 px-5 py-3">
+          <span className="tabular-nums">Unfinished: <span className="font-semibold">{unfinishedLine(u)}</span></span>
+          <StartSetButton body={{ resume_set_id: u.set_id }} label="Resume" name={`Resume ${u.drill_name}`} size="sm" variant="outline" />
+        </li>
+      ))}
+    </ul>
   );
   const d = home.diagnostic;
   const diagnosticCard = (lead: string) => (d.status === 'completed' ? null : (
@@ -128,6 +140,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
         {interviewCard}
         {home.first_week && <HowItWorks />}
         {resume}
+        {unfinished}
         {getPlan}
         {planReady}
         {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
@@ -231,7 +244,8 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
             : home.lesson_first
             ? <Link href={`/drills/learn/${encodeURIComponent(workout.blocks[next].skill_id)}?source=auto&workout=${workout.id}&block=${next}`} className={buttonVariants({ size: 'lg' })}>{started ? 'Continue workout' : "Start today's workout"}</Link>
             : <StartSetButton body={{ workout_id: workout.id, block: next }} label={started ? 'Continue workout' : "Start today's workout"} size="lg" />
-          : workout.blocks[next].set_id && <Link href={`/drills/sets/${workout.blocks[next].set_id}`} className={buttonVariants({ size: 'lg' })}>Continue workout</Link>}
+          // Its set is in progress or set aside: the start resumes it (or asks, if another set is unfinished).
+          : workout.blocks[next].set_id && <StartSetButton body={{ workout_id: workout.id, block: next }} label="Continue workout" size="lg" />}
     </section>
   );
   // Once the workout is finished (Matt, 13 Nov): a short done card, and the
@@ -292,6 +306,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       {interviewCard}
       {home.first_week && <HowItWorks />}
       {layout.resumeTop && resume}
+      {unfinished}
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
           <h2 id="start-here" className="t-heading font-semibold">Start here: how a case interview works</h2>

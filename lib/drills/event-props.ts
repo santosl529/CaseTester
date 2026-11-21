@@ -13,6 +13,9 @@ export const DRILL_EVENT_PROPS = {
   drill_attempt_submitted: ['attempt_id', 'score', 'time_ms', 'timed_out', 'skipped', 'mistake_tags'],
   drill_set_completed: ['set_id', 'set_score', 'passed', 'duration_ms', 'skill_scores'],
   drill_set_expired: ['set_id', 'items_completed'],
+  // One unfinished set at a time (Matt, 21 Nov): "Start … instead" sets the unfinished set aside; Resume brings it back.
+  drill_set_set_aside: ['set_id', 'items_completed', 'for_drill_id'],
+  drill_set_resumed: ['set_id', 'items_completed'],
   grading_job_completed: ['job_id', 'status', 'retries', 'latency_ms', 'input_tokens', 'output_tokens', 'cost_usd'],
   // Feedback timing: one per written answer a grading job saves.
   answer_graded: ['attempt_id', 'drill_id', 'feedback_mode', 'job', 'grading_ms', 'wait_ms', 'status'],

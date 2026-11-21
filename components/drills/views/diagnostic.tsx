@@ -67,7 +67,7 @@ export function DiagnosticScreen({ view, track, retake }: { view: DiagnosticData
           {next && (
             <div className="flex flex-wrap gap-3">
               {next.status === 'in_progress' && next.set_id
-                ? <Link href={`/drills/sets/${next.set_id}`} className={buttonVariants({ size: 'lg' })}>Continue part {next.index + 1} of {parts}</Link>
+                ? <StartSetButton body={{ diagnostic_part: next.index }} label={`Continue part ${next.index + 1} of ${parts}`} size="lg" />
                 : <StartSetButton body={{ diagnostic_part: next.index }} label={`Start part ${next.index + 1} of ${parts}`} size="lg" />}
               <SkipDiagnosticButton label="Stop for now" />
             </div>

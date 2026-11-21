@@ -60,6 +60,8 @@ function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first'): Train
   const program = programView(kind === 'self' ? 'self_directed' : kind === 'intro' ? 'foundations' : 'standard');
   const base = {
     resume: kind === 'plan' || kind === 'done' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
+    // A set set aside for another drill (Matt, 21 Nov).
+    unfinished: kind === 'plan' ? [{ set_id: 'preview-aside', drill_name: 'Mental math', done: 2, size: 6 }] : [],
     // How CasePace works: a new student's first plan week.
     first_week: kind === 'first' || kind === 'intro' || kind === 'new',
     // The top skill in the shared ranking that today's workout doesn't cover (Matt, 15 Nov, D7).

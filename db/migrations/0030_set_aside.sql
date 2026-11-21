@@ -1,0 +1,1 @@
+ALTER TYPE "public"."drill_set_status" ADD VALUE 'set_aside';
