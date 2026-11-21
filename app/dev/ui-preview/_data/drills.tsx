@@ -62,10 +62,10 @@ function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first'): Train
     resume: kind === 'plan' || kind === 'done' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
     // How CasePace works: a new student's first plan week.
     first_week: kind === 'first' || kind === 'intro' || kind === 'new',
-    // Your example (Matt, 13 Nov): arithmetic tops the mistakes but isn't in today's workout.
+    // The top skill in the shared ranking that today's workout doesn't cover (Matt, 15 Nov, D7).
     weakest: kind === 'new' || kind === 'first' ? null : kind === 'self'
-      ? { skill_id: 'QN.setup', skill_name: 'Math setup', mistake: 'wrong base for a percent change', count: 3, practice_minutes: 6, evidence: 'Margin fell from 24% to 6%, so it fell 18%.' }
-      : { skill_id: 'QN.arithmetic', skill_name: 'Arithmetic', mistake: 'arithmetic error', count: 5, practice_minutes: 5, evidence: '1.2 million times 15% is 1.8 million.' },
+      ? { skill_id: 'QN.setup', skill_name: 'Math setup', practice_minutes: 6, reason: 'In your last case you said "Margin fell from 24% to 6%, so it fell 18%.". That\'s a wrong base; this set practices percentages.' }
+      : { skill_id: 'QN.arithmetic', skill_name: 'Arithmetic', practice_minutes: 5, reason: 'In your last case you said "1.2 million times 15% is 1.8 million.". That\'s a arithmetic error; this set practices arithmetic.' },
     diagnostic: kind === 'new' ? { status: 'not_started', done: 0, of: 6 } : { status: 'completed', done: 6, of: 6 },
     plan: kind === 'new' ? { source: null, seen: false } : { source: 'diagnostic' as const, seen: true },
   };
@@ -116,6 +116,19 @@ const STATES: Record<string, SkillStateName> = {
 };
 const ARROWS: Record<string, Arrow> = { 'PS.mece': 'up', 'QN.setup': 'down', 'EX.takeaway': 'up', 'HY.form': 'flat', 'QN.arithmetic': 'up' };
 
+// Case to case, as Your progress shows it (Matt, 15 Nov).
+function caseCardsSample() {
+  return [
+    { level: 'Easy', kind: 'compared' as const, from: { title: 'Larkspur Air Route Profitability', date: 'Nov 3' }, to: { title: 'Hollis Bay Snacks New Product Launch', date: 'Nov 14' },
+      moved: [
+        { area: 'Problem Structuring', before: 'needs_work', after: 'meets_bar', move: 1 as const, sets: 4 },
+        { area: 'Data & Exhibit Interpretation', before: 'meets_bar', after: 'strong', move: 1 as const, sets: 2 },
+        { area: 'Business Judgment & Insight', before: 'meets_bar', after: 'needs_work', move: -1 as const, sets: 0 },
+      ] },
+    { level: 'Medium', kind: 'one' as const },
+  ];
+}
+
 function dashboard(practiced = true): DashboardData {
   const live = DRILLS_CONFIG.taxonomy.skills.filter(s => hasLiveDrill(s.id)).map(s => s.id);
   const progress = new Map<string, SkillProgress>(live.map(id => [id, { ...newProgress(id), state: STATES[id] ?? 'not_started' }]));
@@ -135,9 +148,10 @@ function dashboard(practiced = true): DashboardData {
   })).filter(g => g.skills.length);
   return {
     practiced, has_plan: true,
-    summary: { status: 'improving', sentence: 'You’re improving: 3 skills moved up this week, and you miss fewer questions than last week (18% against 26%).', window_days: 7, up: ['PS.mece', 'EX.takeaway', 'QN.arithmetic'], down: [], rate: { cur: 0.18, prev: 0.26, answers: [44, 38] } },
+    summary: { status: 'improving', sentence: 'You’re improving: 3 skills moved up this week, and you miss fewer questions than last week (18% against 26%).', window_days: 7, up: ['PS.mece', 'EX.takeaway', 'QN.arithmetic'], down: [], rate: { cur: 0.18, prev: 0.26, answers: [44, 38] }, case_lines: [] },
     counts: { mastered: 1, live: live.length },
     readiness: readiness(progress, live, [], true),
+    case_to_case: [] as ReturnType<typeof caseCardsSample>,
     week: { number: 2, theme: 'Structure and math', milestone_skills: [{ name: 'MECE structure', state: 'Mastered' }, { name: 'Math setup', state: 'Learning' }], met: false },
     groups,
     strengths: [{ id: 'PS.mece', name: 'MECE structure', state: 'Mastered', score: 0.92 }, { id: 'QN.arithmetic', name: 'Arithmetic', state: 'Practiced', score: 0.88 }],
@@ -242,10 +256,15 @@ export const DRILL_SCREENS: Screen[] = [
     const lastWeek = <T extends { categories: string[]; series: { values: number[] }[]; gaps: number[] }>(c: T): T => ({ ...c, series: c.series.map(x => ({ ...x, values: x.values.map((n, i) => (i === x.values.length - 1 ? n : 0)) })), gaps: c.categories.map((_, i) => i).filter(i => i !== c.categories.length - 1) });
     return { node: <ProgressScreen v={{ ...v, strengths: [], trends: { ...v.trends, states: { ...v.trends.states, series: v.trends.states.series.map(x => ({ ...x, values: x.values.map((n, i) => (x.name === 'Not started' || i === x.values.length - 1 ? n : 0)) })) }, misses: lastWeek(v.trends.misses), pace: lastWeek(v.trends.pace) } }} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] };
   } },
+  // Case results → drills on (Matt, 15 Nov): Case to case under More detail, and the summary's case lines.
+  { slug: 'progress-cases', path: '/drills/progress?detail=1', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: case to case (case results → drills on)', render: () => {
+    const v = dashboard();
+    return { node: <ProgressScreen v={{ ...v, summary: { ...v.summary, case_lines: ['Problem Structuring: up since your last Easy case.', 'Business Judgment & Insight: down since your last Easy case.'] }, case_to_case: caseCardsSample() }} window={7} period="2w" group="area" openDetail /> };
+  } },
   { slug: 'progress-empty', path: '/drills/progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
   { slug: 'skill', path: '/drills/progress/EX.takeaway', chrome: 'drills', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },
     // Three lessons read (the intro among them); For you: the weakest skill, then this week's.
-  { slug: 'learn', path: '/drills/learn', chrome: 'drills', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} read={new Set(['PS.mece', 'QN.setup'])} introRead forYou={[{ skill_id: 'QN.arithmetic', reason: 'weakest' }, { skill_id: 'EX.takeaway', reason: 'week' }, { skill_id: 'HY.form', reason: 'week' }]} /> }) },
+  { slug: 'learn', path: '/drills/learn', chrome: 'drills', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} read={new Set(['PS.mece', 'QN.setup'])} introRead forYou={[{ skill_id: 'QN.arithmetic', reason: 'top' }, { skill_id: 'EX.takeaway', reason: 'week' }, { skill_id: 'HY.form', reason: 'week' }]} /> }) },
   { slug: 'learn-new', path: '/drills/learn', chrome: 'drills', area: 'Lessons', title: 'Learn library: nothing read yet, no plan', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} read={new Set()} introRead={false} forYou={[]} /> }) },
   {
     slug: 'lesson', path: '/drills/learn/EX.takeaway', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (summary card)', pilot: true,

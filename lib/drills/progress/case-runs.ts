@@ -5,7 +5,7 @@
 // call for the same session (a rescore) changes nothing.
 import 'server-only';
 import { after } from 'next/server';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db/client';
 import { caseResultRuns } from '@/db/schema';
@@ -81,3 +81,38 @@ export async function labelCaseRun(sessionId: string, reviewer: string, body: z.
   await db.update(caseResultRuns).set({ labels }).where(eq(caseResultRuns.sessionId, sessionId));
   return { labels };
 }
+
+// The report's Try again when the step failed (Matt, 15 Nov). The failed run
+// is claimed in one conditional update, so a double click or a second tab
+// can't pay for a second tagging call: only the claimer runs it; anyone else
+// gets 'busy'. Re-runs only the tagging step, on what scoring stored.
+export async function retryCaseRun(sessionId: string, onUsage?: OnUsage): Promise<'done' | 'failed' | 'busy'> {
+  const claimed = await db.update(caseResultRuns).set({ status: 'retrying', error: null })
+    .where(and(eq(caseResultRuns.sessionId, sessionId), eq(caseResultRuns.status, 'failed'))).returning({ cost: caseResultRuns.costUsd });
+  if (claimed.length === 0) return 'busy';
+  try {
+    const { storedCaseResultInput } = await import('@/lib/scoring/score-session');
+    const input = await storedCaseResultInput(sessionId);
+    const step = input ? await runCaseResultStep(input, { deadlineMs: Date.now() + RETRY_BUDGET_MS, onUsage }) : null;
+    if (!step || step.status === 'failed' || !step.payload) {
+      await db.update(caseResultRuns).set({ status: 'failed', error: step?.error ?? 'no input', costUsd: (claimed[0].cost ?? 0) + (step?.costUsd ?? 0) })
+        .where(eq(caseResultRuns.sessionId, sessionId));
+      return 'failed';
+    }
+    await db.update(caseResultRuns).set({
+      status: 'built', taggerConfig: step.taggerConfig, points: { judge: step.points, checker: step.checker }, payload: step.payload,
+      costUsd: (claimed[0].cost ?? 0) + step.costUsd, error: null,
+    }).where(eq(caseResultRuns.sessionId, sessionId));
+    if (step.mode === 'on') {
+      const result = await ingestCaseResult(step.payload);
+      await db.update(caseResultRuns).set({ status: 'applied', appliedAt: new Date(), preview: result }).where(eq(caseResultRuns.sessionId, sessionId));
+    } else {
+      await db.update(caseResultRuns).set({ preview: await previewCaseResult(step.payload) }).where(eq(caseResultRuns.sessionId, sessionId));
+    }
+    return 'done';
+  } catch (err) {
+    await db.update(caseResultRuns).set({ status: 'failed', error: (err as Error).message }).where(eq(caseResultRuns.sessionId, sessionId));
+    throw err;
+  }
+}
+const RETRY_BUDGET_MS = 240_000;

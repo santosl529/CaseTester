@@ -329,7 +329,7 @@ Students should rarely have to choose what to do: the training home leads with t
 - A header shows the track and week ("Standard · Week 2 of 6 · Hypotheses and exhibits") and the interview date, if set.
 - **Start today's workout** is the primary button. It shows the estimated time and the 2–4 sets in order, each with its slot (weak spot, review, unfamiliar) and a one-line reason ("Your last case used a generic framework"). After the first set it reads **Continue workout**.
 - This week's targets: workouts and cases done against planned ("3 of 4 workouts, 1 of 2 cases") and the week's milestone skills with their current state.
-- Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
+- Quick fix (Matt, 15 Nov 2026, D7): the top skill in the shared ranking (`rankPrescriptions`, the same order as the workout's weak-spot slots, Your progress's Focus areas and a case report's next steps) that today's workout doesn't already cover, with that prescription's reason and a short practice set. No open prescription: no quick fix.
 - A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
 - Secondary links: **Your plan**, **Browse drills**, **Learn**, **Your skills**, **Settings**, and a link to the case library (case product).
 - An interview in progress, while its case time lasts, leads the page above everything else: "Interview in progress", the case, about how many minutes are left, and **Continue** (Matt, 17 Nov, pre-pilot audit M3; the same clock as Cases → Past sessions, technical PRD §7).
@@ -414,7 +414,8 @@ The student chooses, per set, on the intro screen: **After each question** (Imme
 - **Recent activity:** the last 20 sets and cases, collapsed at the bottom.
 - **Empty state:** before any practice, what the page will show and **Start today's workout** (a student with a plan) or **Get your plan** (without one).
 - **Views:** "This summary compares" (14 days or this week) and "Skill-map arrows cover" (2 weeks, 4 weeks, all time), each labeled with what it changes. Missed answers per 10 and Pace say "Lower is better".
-- **Case data:** `rules.dashboard.case_source` picks where full cases come from. `case_results` (default) is what the case grader sends, with skill findings and quotes; it isn't sending yet, so the case lines say so. `case_sessions` reads the case product's own completed sessions and their rubric ratings (`sessions`, `scores`), read-only, with each case file's difficulty as its tier (easy 1, medium 2, hard 3): ratings only, no skill findings, so Validated and case findings still wait for the grader. Off until Lorenzo agrees (Matt, 2026-10-18).
+- **Case data** (Matt, 15 Nov 2026): full cases come from `case_results` only — what the case grader sends, with skill findings and quotes, and, from the one-time backfill (`scripts/drills-backfill-case-results.ts`, with Lorenzo's go), ratings only for cases graded before (`backfilled`). The `case_sessions` stopgap and its `case_source` setting are retired. Case data shows only when `CASE_TO_DRILLS` is on: in shadow mode and off, Your progress shows none, whatever `case_results` holds. Readiness's case line counts neither retakes nor cases ended early.
+- **Case to case** (More detail; Matt, 15 Nov 2026): per difficulty, the latest case (not a retake, not ended early) against the one before it at that level, from the case product's stored ratings, with only the areas that moved ("Needs work ↑ Adequate") and the drill sets in between; one case at a level so far says "One so far. A comparison appears after your second." The summary adds a line per moved area when that latest case falls in its window ("Problem Structuring: up since your last Easy case."); it doesn't change the improving / steady / slipping rules (A1–A2).
 - **Charts** use the shared chart renderer with a data table each; the renderer gained optional reference lines, markers and gaps for these charts.
 
 ### Browse drills (practice something specific)
@@ -1170,9 +1171,11 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 3. Remove skills with no live drill. Their findings still appear in case feedback.
 4. Take the 3 highest-scoring skills, with no more than 2 from the same skill area (PS, QN, EX and so on). If a third skill would be the area's third, skip it and take the next-highest skill from a different area. If there is none, prescribe only 2. Ties go to the skill in the lower state, then to the skill whose drill is listed first in the catalog.
 5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Recognize, Repair and Construct drill, for example `PS.case_specific` → PS-1 / PS-4 / PS-3), and the stage and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
-6. Write the reason from a template using the tag and the evidence quote: "In your last case you said '…two million divided by fifty dollars.' Breakeven uses contribution per unit, not price."
+6. Write the reason from the tag's plain line (the taxonomy's `reason_line`, one per tag; Matt, 15–16 Nov 2026), then the evidence quote: "You used the right numbers in the wrong formula. In your last case you said, “so breakeven is two million divided by fifty dollars.”" The quote keeps its last 25 words, US punctuation, the point inside the quotation marks and never doubled. A drill-set reason is one sentence ("In your last Mental math set, you made an arithmetic slip."), and so is a diagnostic reason, naming the skill's top mistake ("In the diagnostic, you calculated a percentage from the wrong starting number.") (`lib/drills/reason.ts`). Open prescriptions with the old wording are rewritten once after the deploy (`scripts/drills-rewrite-reasons.ts`).
 
-Prescriptions from the diagnostic and the plan follow the Training program rules, and the stuck rule can add prerequisite prescriptions (Skill tree). In a workout's weak-spot slot, all open prescriptions are ranked together, with +2 for skills in the week's focus areas.
+Prescriptions from the diagnostic and the plan follow the Training program rules, and the stuck rule can add prerequisite prescriptions (Skill tree). In a workout's weak-spot slot, all open prescriptions are ranked together, with +2 for skills in the week's focus areas. **Milestone first** (Matt, 15 Nov 2026, D6): when this week has an unmet milestone skill with an open prescription, the top-ranked one leads the ranking, so a case's findings never push the week's milestone out of the first slot. The same ranking orders Your progress's Focus areas, Today's quick fix and a case report's next steps, so they never disagree.
+
+**When a case result arrives** (Matt, 15 Nov 2026): today's workout reflects it straight away. Not started: rebuilt. In progress: the sets already started are kept and the rest rebuilt. Done: left alone; tomorrow's reflects it. Practice on my own has no workout to change.
 
 ### Prescriptions inside drills
 
@@ -1189,7 +1192,7 @@ Prescriptions from the diagnostic and the plan follow the Training program rules
 
 When the Next case card appears, it recommends one case:
 
-1. The case type whose main skill falls in the skill area of the most recently Practiced or Mastered prescribed skill, so the case retests it.
+1. The case type whose main skill falls in the skill area the student practiced most since their last case (completed drill sets by their skill's area, the latest breaking a tie; Matt, 15 Nov 2026), so the case retests it.
 2. The same difficulty tier as the student's last case, or one tier higher if that case met the bar: no dimension rated `needs_work` and at least half of the rated dimensions `strong`.
 3. A case the student hasn't taken.
 
@@ -1203,7 +1206,19 @@ This needs a `case_type` field on every case (the case schema's optional `caseTy
 | HY Hypothesis | turnaround, competitive response |
 | EX Exhibit Interpretation | industry analysis |
 
-**Small library.** The rules are relaxed in order (area, then tier) until a case qualifies. When the student has taken every case, the card offers the one taken longest ago as a retake. With no cases, there is no card. Nothing loops, including with the single case in the library today. The card links to the case page; drills can't start a case itself until the case product accepts a student who has already passed the club-code gate.
+**Small library.** The rules are relaxed in order (area, then tier) until a case qualifies. Never a retake by default (Matt, 15 Nov 2026): when the student has taken every case, the card says "You've taken every case. Retake one?" and links to Cases, so a retake is the student's choice. Only the cases students can start from Cases are picked (not the demo or an unlisted case). With no cases, there is no card. Nothing loops, including with the single case in the library today. The card links to the case page; drills can't start a case itself until the case product accepts a student who has already passed the club-code gate.
+
+### A case report's next steps and case to case (Matt, 15 Nov 2026)
+
+Shown on the case report only when `CASE_TO_DRILLS` is on (`lib/drills/progress/report-view.ts`, `components/case-next-steps.tsx`, `components/case-compare.tsx`; previews `report-next-steps*`).
+
+- **Case to case**, after Top improvement: each rubric dimension against the previous case at the same difficulty that was neither a retake nor ended early (on a retake, the earlier attempt of the same case: "Last time on this case"), from the case product's stored ratings, so older cases count. A dimension that went up with drill sets on its skills in between adds "You practiced this in N drill sets since your last case."
+- **Your next steps**, before the survey and the transcript: this case's prescriptions in the shared ranking's order (at most 3), fixed when the case result arrives (`case_results.next_steps`, D5). Each has its plain line, the student's quote, Read the lesson (with its minutes at 200 words a minute), Start practice (the first one primary) and "[drill name] · Level N · about M min". At most one **Also from this case** row: the weightiest finding on a skill with no live drill, when it weighs at least as much as the lowest skill listed, with "No drill for this skill yet, so you'll practice it in full cases for now." and the report's own plain tip.
+- **Before your next case:** one line per listed skill with a drill, "done" only when a set on it passed after the case; the time, and "Your daily workouts mix these with this week's plan."; the next case (never a retake; "You've taken every case. Retake one?"); ready when every listed skill with a drill is done (D12: a suggestion, never a lock). **What went well:** 1–2 strengths from the report. **All clear** (no finding, the bar met): "Nothing from this case needs practice. You're ready for a harder case." Ended early: "You ended this case early, so these come from the parts you reached."
+- **The 7-minute demo's report** (D10: no case result) shows one line instead: "Take a full case to get your next steps." with **Go to cases** (Matt, 16 Nov).
+- **No section** when no run is coming: none recorded five minutes after the score (a case graded before the switch went on), a run from shadow mode, or one applied without its snapshot (`pendingNextSteps`, tested; fixed 16 Nov, when such reports said "Preparing" forever).
+- While the tagging step is still running the section says "Preparing your next steps…" and the page refreshes every 5 s for 3 minutes; if it failed, Try again re-runs only the tagging step, once per failure (the failed run is claimed in one conditional update).
+- **Learn's For you** and **Today's quick fix** read the same shared ranking (`sharedRanking`), so Today, Learn, Your progress and the report agree.
 
 ### Updating skill state from cases
 
@@ -1551,6 +1566,9 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `prescription_created` / `_dismissed` / `_completed` | Prescription lifecycle | prescription\_id, skill\_id, drill\_id, source\_type, priority |
 | `next_case_card_shown` / `_clicked` | Next-case card | recommended\_case\_id |
 | `case_result_received` | Case grader payload accepted | case\_attempt\_id, case\_type, difficulty\_tier, finding\_count |
+| `next_steps_shown` | A case report shows Your next steps (once per view; Matt, 15 Nov 2026) | case\_attempt\_id, skill\_ids, no\_drill\_skill\_id, all\_clear, retake, partial |
+| `next_step_clicked` | Read the lesson, Start practice or Go to cases on a report's next steps | case\_attempt\_id, skill\_id, prescription\_id, action, position |
+| `next_step_completed` | A set started from a report's next steps is completed, or its lesson is read | case\_attempt\_id, skill\_id, kind, set\_id, passed |
 | `onboarding_completed` | Onboarding answers submitted | track\_suggested, interview\_days\_out, cases\_done, workouts\_per\_week |
 | `diagnostic_completed` | Diagnostic results are final | overall\_score, placements (JSON) |
 | `program_assigned` / `_switched` | Track set or changed | track, plan\_version, reason |

@@ -10,6 +10,8 @@
 //
 //   npm run drills:smoke:dashboard
 import './smoke-log';
+// Case data shows on Your progress only when case results reach drills (Matt, 15 Nov): on for this smoke.
+process.env.CASE_TO_DRILLS = 'on';
 import { checkSmokeEvents } from './smoke-events';
 import { printSmokeSpend } from './smoke-spend';
 import { cleanupDashboardSeed, seedDashboardHistory } from './dashboard-seed';
@@ -24,7 +26,7 @@ import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { onboard } from '@/lib/drills/program/store';
 import { recordPlanSource } from '@/lib/drills/program/plan-source';
 import { dashboardView, liveSkills, skillDetailView } from '@/lib/drills/progress/dashboard-store';
-import { dashboardCases } from '@/lib/drills/progress/case-source';
+import { gradedCases } from '@/lib/drills/progress/case-compare-store';
 
 const student = randomUUID();
 const failures: string[] = [];
@@ -92,20 +94,18 @@ async function main() {
     check(leaks.length === 0, `skill codes in student text: ${leaks.slice(0, 3).join(' | ')}`);
     console.log(`summary: "${v.summary.sentence}" readiness ${v.readiness.status} (${v.readiness.met}/3); focus ${v.focus.map(f => f.name).join(', ')}`);
 
-    // The case_sessions switch: the case product's own scored session, tiered by its case file.
-    const cfg = DRILLS_CONFIG.rules.dashboard as { case_source: string };
+    // Case to case reads the case product's own scored sessions (read-only), tiered by their case file (the
+    // case_sessions stopgap retired 15 Nov; the comparison kept its reading of stored ratings).
     const [session] = await db.insert(sessions).values({ userId: student, caseId: 'prof-001', status: 'completed', completedAt: new Date() }).returning({ id: sessions.id });
     await db.insert(scores).values({ sessionId: session.id, structureRating: 'strong', quantitativeRating: 'meets_bar', synthesisRating: 'strong' });
-    cfg.case_source = 'case_sessions';
     try {
-      const bridged = await dashboardCases(student);
-      check(bridged.length === 1 && bridged[0].tier === 2 && bridged[0].ratings.structure === 'strong' && bridged[0].findings.length === 0, `case_sessions: ${JSON.stringify(bridged)}`);
+      const graded = await gradedCases(student);
+      check(graded.length === 1 && graded[0].tier === 2 && graded[0].ratings.structure === 'strong', `graded cases: ${JSON.stringify(graded)}`);
     } finally {
-      cfg.case_source = 'case_results';
       await db.delete(scores).where(eq(scores.sessionId, session.id));
       await db.delete(sessions).where(eq(sessions.id, session.id));
     }
-    console.log('case_sessions switch: a scored session reads as a tier 2 case, ratings only');
+    console.log('stored ratings: a scored session reads as a tier 2 case');
   } finally {
     await printSmokeSpend([student]);
     await cleanupDashboardSeed(student);

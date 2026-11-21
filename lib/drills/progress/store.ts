@@ -235,15 +235,16 @@ export type IngestResult = { status: 'ingested' | 'duplicate'; prescriptions: nu
 
 // What came before this case (shared by ingest and the shadow preview, so the
 // two can't disagree): the previous case result's findings (+2 for a skill
-// flagged again), and whether this is a retake — the student finished this case
+// flagged again; a repeat for the state rules), and whether this is a retake — the student finished this case
 // before (an earlier case result, or an earlier completed session in the case
 // product).
 async function caseHistory(x: Exec, payload: CaseResultPayload): Promise<{ previous: CaseResultPayload | null; retake: boolean }> {
   const studentId = payload.student_id;
   const completedAt = new Date(payload.completed_at);
+  // The previous case that was neither a retake nor ended early (Matt, 15 Nov, D3): the one a repeat is counted on.
   const [prevRow] = await x.select().from(caseResults).where(and(
     eq(caseResults.studentId, studentId), ne(caseResults.caseAttemptId, payload.case_attempt_id),
-    lt(caseResults.completedAt, completedAt),
+    lt(caseResults.completedAt, completedAt), eq(caseResults.retake, false), eq(caseResults.partial, false),
   )).orderBy(desc(caseResults.completedAt)).limit(1);
   const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
   const [earlierResult] = await x.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(

@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { newProgress, type ProgressMap, type SkillProgress } from '@/lib/drills/progress/engine';
 import { buildPlan, type PlanWeek } from '@/lib/drills/program/plan';
 import {
-  buildWorkout, milestoneGaps, missedMilestoneSkills, planPrescriptionSkill, prerequisiteOrder, setMinutes, weekMilestones,
+  buildWorkout, milestoneGaps, missedMilestoneSkills, planPrescriptionSkill, prerequisiteOrder, rankPrescriptions, setMinutes, weekMilestoneSkills, weekMilestones,
   type OpenPrescription, type WorkoutInput,
 } from '@/lib/drills/program/workout';
 
@@ -168,3 +168,29 @@ describe('the plan drives practice (PRD "How the plan drives practice")', () => 
     expect(milestoneGaps(m6, { ...facts, prescribed_skills: ['PS.case_specific'], cases_this_week: 1 }, [])).toEqual({ met: true, skills: [] });
   });
 });
+
+describe('milestone first (Matt, 15 Nov, D6)', () => {
+  it("lists this week's milestone skills not reached yet", () => {
+    expect(weekMilestoneSkills(week(1), weeks, progress({ skill_id: 'PS.mece', state: 'practiced' }))).toEqual(['PS.case_specific', 'QN.setup']);
+    expect(weekMilestoneSkills(null, weeks, progress())).toEqual([]);
+  });
+
+  it("puts the top-ranked unmet milestone skill first, and leaves the rest in rank order", () => {
+    const rxs = [rx('SY.answer_first', 4), rx('EX.takeaway', 3), rx('PS.case_specific', 1, 'plan'), rx('QN.percentages', 2)];
+    const plain = rankPrescriptions(rxs, null, []).map(r => r.rx.skill_id);
+    expect(plain).toEqual(['SY.answer_first', 'EX.takeaway', 'QN.percentages', 'PS.case_specific']);
+    expect(rankPrescriptions(rxs, null, [], ['PS.case_specific', 'QN.setup']).map(r => r.rx.skill_id))
+      .toEqual(['PS.case_specific', 'SY.answer_first', 'EX.takeaway', 'QN.percentages']);
+    // No open prescription for a milestone skill: rank order.
+    expect(rankPrescriptions(rxs, null, [], ['QN.setup']).map(r => r.rx.skill_id)).toEqual(plain);
+  });
+
+  it("gives the workout's first weak-spot slot to the milestone skill, the case's top skill the second", () => {
+    const w = buildWorkout(input({
+      week: week(1), prescriptions: [rx('SY.answer_first', 4), rx('PS.case_specific', 1, 'plan')],
+      milestone_skills: ['PS.case_specific'],
+    }));
+    expect(w.blocks.filter(b => b.slot === 'weak').map(b => b.skill_id)).toEqual(['PS.case_specific', 'SY.answer_first']);
+  });
+});
+

@@ -25,6 +25,10 @@ export const DRILL_EVENT_PROPS = {
   next_case_card_shown: ['recommended_case_id'],
   next_case_card_clicked: ['recommended_case_id'],
   case_result_received: ['case_attempt_id', 'case_type', 'difficulty_tier', 'finding_count'],
+  // Case results → drills (Matt, 15 Nov): whether students follow a report's next steps.
+  next_steps_shown: ['case_attempt_id', 'skill_ids', 'no_drill_skill_id', 'all_clear', 'retake', 'partial'],
+  next_step_clicked: ['case_attempt_id', 'skill_id', 'prescription_id', 'action', 'position'],
+  next_step_completed: ['case_attempt_id', 'skill_id', 'kind', 'set_id', 'passed'],
   transfer_check_completed: ['skill_id', 'score', 'passed', 'attempt_number'],
   prerequisite_prescribed: ['skill_id', 'prerequisite_id'],
   transfer_pool_exhausted: ['skill_id', 'drill_id'],

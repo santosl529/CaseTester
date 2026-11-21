@@ -212,3 +212,12 @@ describe('reason lines (Matt, 15–16 Nov)', () => {
   });
 });
 
+
+describe('reason lines (Matt, 15 Nov)', () => {
+  it('give every tag one plain sentence, with no bare tag name and no "a" before a vowel', () => {
+    for (const t of DRILLS_CONFIG.taxonomy.mistake_tags) {
+      expect(t.reason_line, t.id).toMatch(/^[A-Z][^]*\.$/);
+      expect(t.reason_line, t.id).not.toMatch(/\ba [aeiou]/i);
+    }
+  });
+});

@@ -18,9 +18,13 @@ import { hasLiveDrill, newProgress, stateRank, type SkillProgress, type SkillSta
 import { loadProgress } from './store';
 import { progressTowardNext } from './profile';
 import { activeProgram, openRx, programView, studentToday, weekStatus } from '../program/store';
-import { missedMilestoneSkills, rankPrescriptions } from '../program/workout';
+import { missedMilestoneSkills, rankPrescriptions, weekMilestoneSkills } from '../program/workout';
 import { lessonSkills } from '../program/lessons-store';
-import { caseSource, dashboardCases } from './case-source';
+import { dashboardCases } from './case-source';
+import { caseResultsWired } from '../case-to-drills';
+import { caseMoveLines, caseToCaseCards, type CaseToCaseCard } from '../case-compare';
+import { gradedCases } from './case-compare-store';
+import { getCaseById } from '@/lib/cases/loader';
 import {
   STATE_LABEL, countsSet, lastScore, missesByWeek, nextStep, paceByWeek, readiness, rubricByTier, scoreChart, scorePoints, skillArrow, skillMistakes,
   statesByWeek, strengths, summary, weeks, type DashAttempt, type DashEvent, type DashSet,
@@ -54,8 +58,10 @@ async function load(studentId: string) {
   const events: DashEvent[] = (await db.select().from(skillStateEvents).where(eq(skillStateEvents.studentId, studentId)).orderBy(asc(skillStateEvents.createdAt)))
     .map(e => ({ skillId: e.skillId, fromState: e.fromState, toState: e.toState, reason: e.reason, createdAt: e.createdAt }));
   const cases = await dashboardCases(studentId);
+  // Case to case (Matt, 15 Nov): from the case product's stored ratings, like the report; only when CASE_TO_DRILLS is on.
+  const caseCards = caseResultsWired() ? caseToCaseCards(await gradedCases(studentId), setRows.flatMap(s => (s.status === 'completed' && s.completedAt ? [{ drillId: s.drillId, focus: s.focusSkill, completedAt: s.completedAt }] : []))) : [];
   const { timezone } = await studentToday(studentId);
-  return { progress, sets, setRows, attempts, events, cases, timezone };
+  return { progress, sets, setRows, attempts, events, cases, caseCards, timezone };
 }
 
 const dateLabel = (tz: string | null) => (d: Date) => {
@@ -66,6 +72,17 @@ const dateLabel = (tz: string | null) => (d: Date) => {
   }
 };
 const dimLabel = (k: string) => RUBRIC_DIMENSION_LABELS[k as RubricDimensionKey] ?? k;
+
+// A Case to case card for the page: case titles and dates, area labels.
+const caseTitle = (id: string) => { try { return getCaseById(id).title; } catch { return 'A retired case'; } };
+function caseCardView(c: CaseToCaseCard, label: (d: Date) => string) {
+  if (c.kind === 'one') return { level: c.level, kind: 'one' as const };
+  return {
+    level: c.level, kind: 'compared' as const,
+    from: { title: caseTitle(c.from.caseId), date: label(c.from.completedAt) }, to: { title: caseTitle(c.to.caseId), date: label(c.to.completedAt) },
+    moved: c.moved.map(r => ({ area: dimLabel(r.dimension), before: r.before, after: r.after, move: r.move, sets: r.sets })),
+  };
+}
 
 // ------------------------------------------------------------------ the page
 
@@ -94,7 +111,8 @@ export async function dashboardView(studentId: string, opts: { window: number; p
   const view = program ? await programView(studentId, now) : null;
   const week = view?.plan.kind === 'weeks' ? view.week : null;
   const open = await openRx(db, studentId);
-  const ranked = rankPrescriptions(open, week ?? null, view?.plan.kind === 'weeks' ? missedMilestoneSkills(week ?? null, view.plan.weeks, d.progress) : []);
+  const planWeeks = view?.plan.kind === 'weeks' ? view.plan.weeks : null;
+  const ranked = rankPrescriptions(open, week ?? null, planWeeks ? missedMilestoneSkills(week ?? null, planWeeks, d.progress) : [], planWeeks ? weekMilestoneSkills(week ?? null, planWeeks, d.progress) : []);
   const seen = new Set<string>();
   const focus = ranked.filter(r => !seen.has(r.rx.skill_id) && (seen.add(r.rx.skill_id), true)).slice(0, cfg().top_n)
     .map(r => ({ prescription_id: r.rx.id, skill_id: r.rx.skill_id, name: getSkill(r.rx.skill_id).name, reason: r.rx.reason, live: live.includes(r.rx.skill_id) }));
@@ -107,9 +125,10 @@ export async function dashboardView(studentId: string, opts: { window: number; p
     practiced,
     // The empty state's button: Start today's workout once a plan exists.
     has_plan: Boolean(program && program.track !== 'self_directed' && program.planSource),
-    summary: summary(d.sets, d.attempts, d.events, opts.window, now),
+    summary: { ...summary(d.sets, d.attempts, d.events, opts.window, now), case_lines: caseMoveLines(d.caseCards, opts.window, now, dimLabel) },
     counts: { mastered: live.filter(id => stateRank(state(id)) >= stateRank('mastered')).length, live: live.length },
-    readiness: readiness(d.progress, live, d.cases, hasCases || caseSource() === 'case_sessions'),
+    readiness: readiness(d.progress, live, d.cases, hasCases || caseResultsWired()),
+    case_to_case: d.caseCards.map(c => caseCardView(c, label)),
     week: status && view?.week ? { number: view.week.week, theme: view.week.theme, milestone_skills: status.milestone_skills.map(s => ({ name: s.name, state: STATE_LABEL[s.state] })), met: status.milestone_met } : null,
     groups,
     // One "last score" everywhere: the last point on the skill's chart.

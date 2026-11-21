@@ -122,6 +122,9 @@ export const StartSetSchema = z.object({
   suggestion: z.object({ reason: z.string().transform(s => s.slice(0, 300)), source: z.enum(['weak', 'unfamiliar', 'review']) }).optional(),
   // Started from Your progress: a focus area's or a skill page's Practice button.
   dashboard: z.enum(['focus', 'detail']).optional(),
+  // Started from a case report's next steps (Matt, 15 Nov): logged with drill_set_started, so completing the set logs
+  // next_step_completed.
+  report: z.object({ case_attempt_id: z.uuid(), skill_id: z.string() }).optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
   'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
@@ -311,6 +314,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
     defend: plan.some(r => r.kind === 'authored' && r.defend), untimed, feedback_mode: feedbackMode,
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
+    report_case: input.report?.case_attempt_id ?? null, report_skill: input.report?.skill_id ?? null,
   });
   if (input.dashboard) {
     await logDrillEvent(studentId, 'dashboard_practice_clicked', { skill_id: choice.focusSkill ?? drill.primary_skills[0] ?? null, section: input.dashboard, set_id: setId });

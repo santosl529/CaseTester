@@ -14,30 +14,32 @@ import { inProgressSet } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type WorkoutBlock } from './workout';
+import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
 import { healDiagnostic } from '../grading/jobs';
 import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
 import {
-  activeProgram, latestEvidence, nextCaseFor, noteWeekRollover, programView, studentToday, todayWorkout, weekStatus,
+  activeProgram, nextCaseFor, noteWeekRollover, programView, sharedRanking, studentToday, todayWorkout, weekStatus,
   workoutWithStatus,
   diagnosticReoffer, extraWorkout,
 } from './store';
 
 const DAY = 86_400_000;
 
-// The most frequent mistake of the last 30 days (drills and cases) and its
-// skill. `practice_minutes`: how long a quick-start set on the skill runs, as
-// the set service would pick it (the Today page's Quick fix button); null
-// when the skill has no live drill. Read only.
-async function weakestSkill(studentId: string, profile: Awaited<ReturnType<typeof skillProfile>>) {
-  const top = profile.top_mistakes[0];
-  if (!top) return null;
-  const skillId = profile.areas.flatMap(a => a.skills).find(s => s.name === top.skill_name)?.id ?? null;
+// Today's quick fix (Matt, 15 Nov, D7): the top skill in the shared ranking —
+// rankPrescriptions, the workout's and Progress's Focus areas' order, so the
+// three never disagree — that today's workout doesn't already cover, with that
+// prescription's reason. `practice_minutes`: how long a quick-start set on the
+// skill runs, as the set service would pick it; null when it has no live
+// drill. None open: no quick fix. Read only.
+async function quickFixSkill(studentId: string, ranked: OpenPrescription[], covered: Set<string>) {
+  const pick = ranked.find(rx => !covered.has(rx.skill_id));
+  if (!pick) return null;
+  const skillId = pick.skill_id;
   let practiceMinutes: number | null = null;
-  if (skillId) {
+  {
     const [progress, tiers, ctx, [settings]] = await Promise.all([
       loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
       db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
@@ -45,11 +47,9 @@ async function weakestSkill(studentId: string, profile: Awaited<ReturnType<typeo
     const next = nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
     if (next) practiceMinutes = Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1)));
   }
-  return {
-    skill_id: skillId, skill_name: top.skill_name, mistake: top.label, count: top.count, practice_minutes: practiceMinutes,
-    evidence: skillId ? await latestEvidence(studentId, skillId) : null,
-  };
+  return { skill_id: skillId, skill_name: getSkill(skillId).name, reason: pick.reason, practice_minutes: practiceMinutes };
 }
+
 
 export async function homeView(studentId: string, now = new Date()) {
   if (!(await activeProgram(db, studentId))) return { kind: 'onboarding' as const };
@@ -63,7 +63,6 @@ export async function homeView(studentId: string, now = new Date()) {
   const plan = { source: program.planSource as PlanSource | null, seen: program.planSeenAt !== null };
   const [view, current, profile] = await Promise.all([programView(studentId, now), inProgressSet(studentId), skillProfile(studentId, now)]);
   const resume = current && current.source !== 'diagnostic' ? { set_id: current.id, drill_name: getDrill(current.drillId).name } : null;
-  const weakest = await weakestSkill(studentId, profile);
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
@@ -71,9 +70,12 @@ export async function homeView(studentId: string, now = new Date()) {
   const firstWeek = isFirstWeek(
     view?.plan.kind === 'weeks' ? { kind: 'weeks', week: view.week?.week ?? null } : { kind: view?.plan.kind === 'days' && program.track !== 'self_directed' ? 'days' : 'none', week: null },
     program.startedAt, now);
-  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
-
   const progress = await loadProgress(db, studentId);
+  if (program.track === 'self_directed') {
+    const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
+    return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
+  }
+
   const { timezone } = await studentToday(studentId, now);
   const week = view!.week;
   const status = week ? await weekStatus(studentId, program, week, view!.plan, progress, timezone) : null;
@@ -84,6 +86,8 @@ export async function homeView(studentId: string, now = new Date()) {
   }
   const workoutRow = await todayWorkout(studentId, now);
   const workout = workoutRow ? await workoutWithStatus(workoutRow) : null;
+  const covered = new Set((workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress').map(b => b.skill_id));
+  const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered);
   // Foundations: the lesson opens before the first set of each skill.
   const nextBlock = workout?.blocks.find(b => b.status === 'todo');
   let lessonFirst = false;

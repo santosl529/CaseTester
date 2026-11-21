@@ -50,6 +50,8 @@ export interface WorkoutInput {
   tiers: Record<string, number>;
   prescriptions: OpenPrescription[];
   missed_milestone_skills: string[];
+  // This week's unmet milestone skills: milestone first (weekMilestoneSkills).
+  milestone_skills?: string[];
   time_multiplier: number;
   ctx: Context;
   // Questionnaire placements still to confirm, one skill per area, in order.
@@ -170,7 +172,7 @@ export function buildWorkout(input: WorkoutInput): Workout {
   // Weak spots (50%): highest-priority open prescriptions, +2 for the week's
   // focus, +1 for a missed milestone; at most one set per skill. A skill whose
   // transfer check is due takes the unfamiliar slot instead.
-  const ranked = rankPrescriptions(input.prescriptions, input.week, input.missed_milestone_skills);
+  const ranked = rankPrescriptions(input.prescriptions, input.week, input.missed_milestone_skills, input.milestone_skills ?? []);
   const weakBudget = target * w.mix.weak;
   let weakMinutes = 0;
   let weakSets = 0;
@@ -305,13 +307,28 @@ export function weekMilestones(week: PlanWeek, all: PlanWeek[], facts: Milestone
 }
 
 // Milestone skills from earlier weeks not yet met: +1 in the weak-spot pool.
-// The weak-spot order (also Your progress's focus areas, so the two never
-// disagree): priority, +2 for the week's focus, +1 for a missed milestone;
-// ties go to the more reliable source, then the older prescription.
-export function rankPrescriptions(prescriptions: OpenPrescription[], week: PlanWeek | null, missedMilestones: string[]) {
-  return prescriptions
+// The weak-spot order (also Your progress's focus areas and a case report's
+// next steps, so they never disagree): priority, +2 for the week's focus, +1
+// for a missed milestone; ties go to the more reliable source, then the older
+// prescription. Milestone first (Matt, 15 Nov, D6): when this week has an unmet
+// milestone skill with an open prescription, the top-ranked one leads, so a
+// case's findings never push the week's milestone out of the first slot.
+export function rankPrescriptions(prescriptions: OpenPrescription[], week: PlanWeek | null, missedMilestones: string[], milestoneSkills: string[] = []) {
+  const ranked = prescriptions
     .map(rx => ({ rx, score: rx.priority + (inFocus(rx.skill_id, week) ? programs.focus_priority_bonus : 0) + (missedMilestones.includes(rx.skill_id) ? programs.missed_milestone_bonus : 0) }))
     .sort((a, b) => b.score - a.score || SOURCE_ORDER[a.rx.source] - SOURCE_ORDER[b.rx.source] || a.rx.created_at.getTime() - b.rx.created_at.getTime());
+  const lead = ranked.findIndex(r => milestoneSkills.includes(r.rx.skill_id));
+  return lead > 0 ? [ranked[lead], ...ranked.slice(0, lead), ...ranked.slice(lead + 1)] : ranked;
+}
+
+// This week's milestone skills not reached yet (its "skills" and "earlier
+// milestones" milestones): the ones milestone-first puts in the first slot.
+export function weekMilestoneSkills(current: PlanWeek | null, all: PlanWeek[], progress: ProgressMap): string[] {
+  if (!current) return [];
+  const earlier = all.filter(w => w.week < current.week).flatMap(w => w.milestones);
+  const facts: MilestoneFacts = { progress, prescribed_skills: [], tier3_passes: 0, cases_this_week: 0 };
+  return [...new Set(current.milestones.filter(m => m.type === 'skills' || m.type === 'earlier_milestones')
+    .flatMap(m => milestoneGaps(m, facts, earlier).skills))];
 }
 
 export function missedMilestoneSkills(current: PlanWeek | null, all: PlanWeek[], progress: ProgressMap): string[] {

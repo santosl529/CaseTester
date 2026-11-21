@@ -9,6 +9,7 @@
 // endpoint (app/api/internal/drills/grading); after MAX_RUNS the set completes
 // with whatever is left marked failed.
 import 'server-only';
+import { noteReportSetCompleted } from '../progress/next-steps-store';
 import { after } from 'next/server';
 import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -126,6 +127,8 @@ export async function finalizeSet(setId: string): Promise<boolean> {
   });
   if (event) {
     await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
+    // A set started from a case report's next steps (Matt, 15 Nov).
+    await noteReportSetCompleted(event.studentId, event.props.set_id, event.props.passed);
     await logPendingEvents(event.studentId, event.progress);
     if (event.diagnosticScore !== null) await diagnosticFinished(event.studentId, event.diagnosticScore);
   }

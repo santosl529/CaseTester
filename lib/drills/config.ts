@@ -204,10 +204,9 @@ export const RulesSchema = z.object({
     spend_day_time_zone: z.string().min(1),
   }),
   // Your progress dashboard: the summary's windows and thresholds (trend
-  // rules A1–A4, Matt 2026-10-18), the skill map's periods, readiness, and
-  // where case results come from: 'case_results' (sent by the case grader) or
-  // 'case_sessions' (the case product's own scores; read-only, off until
-  // Lorenzo agrees).
+  // rules A1–A4, Matt 2026-10-18), the skill map's periods and readiness. Case
+  // results come from case_results only (the case_sessions stopgap retired,
+  // Matt 15 Nov), and only when CASE_TO_DRILLS is on.
   dashboard: z.object({
     compare_windows_days: z.array(z.number().int().positive()).min(1),
     min_sets_per_window: z.number().int().positive(),
@@ -228,8 +227,6 @@ export const RulesSchema = z.object({
       case_min_tier: z.number().int().min(1).max(3),
       statuses: z.array(z.object({ min_met: z.number().int().nonnegative(), label: z.string().min(1) })).min(1),
     }),
-    case_source: z.enum(['case_results', 'case_sessions']),
-    case_difficulty_tiers: z.record(z.string(), z.number().int().min(1).max(3)),
   }),
   item_health: z.object({
     min_attempts: z.number().int().positive(),
