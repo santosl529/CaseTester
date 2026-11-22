@@ -16,6 +16,7 @@ import {
   type Transition,
 } from './engine';
 import { applyCase } from './case';
+import { startingPointFor } from '../program/starting-point-store';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Exec = typeof db | Tx;
@@ -247,12 +248,18 @@ async function caseHistory(x: Exec, payload: CaseResultPayload): Promise<{ previ
     lt(caseResults.completedAt, completedAt), eq(caseResults.retake, false), eq(caseResults.partial, false),
   )).orderBy(desc(caseResults.completedAt)).limit(1);
   const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
+  // A starting-point case that was set aside (didn't meet the bar, or ended early) doesn't make the next attempt at
+  // that case a retake (lib/drills/program/starting-point.ts; proposed, awaiting Matt's ruling).
+  const sp = await startingPointFor(x, studentId);
+  const asideId = sp?.setAside && sp.caseAttemptId !== payload.case_attempt_id ? sp.caseAttemptId : null;
   const [earlierResult] = await x.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(
     eq(caseResults.studentId, studentId), eq(caseResults.caseId, payload.case_id),
-    ne(caseResults.caseAttemptId, payload.case_attempt_id), lt(caseResults.completedAt, completedAt))).limit(1);
+    ne(caseResults.caseAttemptId, payload.case_attempt_id), lt(caseResults.completedAt, completedAt),
+    ...(asideId ? [ne(caseResults.caseAttemptId, asideId)] : []))).limit(1);
   const [earlierSession] = await x.select({ id: sessions.id }).from(sessions).where(and(
     eq(sessions.userId, studentId), eq(sessions.caseId, payload.case_id), eq(sessions.status, 'completed'),
-    lt(sessions.completedAt, new Date(completedAt.getTime() - RETAKE_GAP_MS)))).limit(1);
+    lt(sessions.completedAt, new Date(completedAt.getTime() - RETAKE_GAP_MS)),
+    ...(asideId ? [ne(sessions.id, asideId)] : []))).limit(1);
   return { previous, retake: Boolean(earlierResult || earlierSession) };
 }
 

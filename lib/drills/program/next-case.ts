@@ -46,7 +46,10 @@ export function metTheBar(rubric: Record<string, string> | null): boolean {
   return ratings.filter(r => r === 'strong').length * 2 >= ratings.length;
 }
 
-export function pickNextCase(library: LibraryCase[], taken: TakenCase[], focusArea: string | null): NextCase | null {
+// `returning`: a starting-point case that was set aside (lib/drills/program/starting-point.ts; not in `taken`). It may
+// be offered again only once eligible, and only when no case the student hasn't tried qualifies under any rule.
+export function pickNextCase(library: LibraryCase[], taken: TakenCase[], focusArea: string | null,
+  returning: { caseId: string; eligible: boolean } | null = null): NextCase | null {
   if (library.length === 0) return null;
   const areaOf = DRILLS_CONFIG.rules.case_type_to_skill_area as Record<string, string>;
   const takenIds = new Set(taken.map(t => t.case_id));
@@ -55,10 +58,13 @@ export function pickNextCase(library: LibraryCase[], taken: TakenCase[], focusAr
   const areaOk = (c: LibraryCase) => focusArea !== null && c.case_type !== null && areaOf[c.case_type] === focusArea;
   const tierOk = (c: LibraryCase) => targetTier === null || c.tier === targetTier;
 
-  const fresh = library.filter(c => !takenIds.has(c.id));
-  for (const [needArea, needTier] of [[true, true], [false, true], [true, false], [false, false]] as const) {
-    const hit = fresh.find(c => (!needArea || areaOk(c)) && (!needTier || tierOk(c)));
-    if (hit) return { case_id: hit.id, title: hit.title, retake: false, matched: { area: areaOk(hit), tier: tierOk(hit) } };
+  const untried = library.filter(c => !takenIds.has(c.id) && c.id !== returning?.caseId);
+  const back = returning?.eligible ? library.filter(c => c.id === returning.caseId && !takenIds.has(c.id)) : [];
+  for (const pool of [untried, back]) {
+    for (const [needArea, needTier] of [[true, true], [false, true], [true, false], [false, false]] as const) {
+      const hit = pool.find(c => (!needArea || areaOk(c)) && (!needTier || tierOk(c)));
+      if (hit) return { case_id: hit.id, title: hit.title, retake: false, matched: { area: areaOk(hit), tier: tierOk(hit) } };
+    }
   }
   // Everything taken: no pick; the student chooses a retake.
   return { case_id: null, title: null, retake: true, matched: { area: false, tier: false } };

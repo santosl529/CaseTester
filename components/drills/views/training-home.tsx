@@ -7,6 +7,7 @@ import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';
 import { caseResultsWired } from '@/lib/drills/case-to-drills';
+import { START_CHOICE } from '@/lib/drills/program/start-choice-text';
 import { AppPage } from '@/components/brand/page';
 import { StepDot } from '@/components/brand/progress';
 import { ArrowLink } from '@/components/brand/links';
@@ -41,7 +42,7 @@ function Title({ label, title }: { label: [string, string | null]; title: string
 export type UnfinishedInterview = { caseTitle: string; status: string; href: string };
 export const INTERVIEW_IN_PROGRESS = 'Interview in progress';
 
-export function TrainingHome({ home, checkin, interview = null }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null }) {
+export function TrainingHome({ home, checkin, interview = null, caseEndedEarly = false }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null; caseEndedEarly?: boolean }) {
   const interviewCard = interview && (
     <section aria-labelledby="interview" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
       <div className="min-w-0 space-y-0.5">
@@ -80,25 +81,32 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
   const self = home.kind === 'self_directed';
   // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
   // Two while a case result can't make a plan (CASE_TO_DRILLS=on).
+  // No plan source yet (Matt, 22 Nov): three equal options — quick questions, the quick quiz, a case interview (Brew &
+  // Bean; only while case results reach drills). On a phone they stack in that order. Text: start-choice-text.ts.
+  const choice = home.start_choice;
+  const card = (title: string, body: string, action: React.ReactNode, extra?: React.ReactNode) => (
+    <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
+      <span className="space-y-1"><span className="t-body block font-semibold">{title.split(' · ')[0]} · <span className="whitespace-nowrap">{title.split(' · ')[1]}</span></span><span className="block text-ink/70">{body}</span>{extra}</span>
+      {action}
+    </li>
+  );
   const getPlan = !home.plan.source && (
     <section aria-labelledby="get-plan" className="space-y-4">
-      <h2 id="get-plan" className="t-heading font-semibold">{self ? 'Find your starting point' : 'Get your plan'}</h2>
-      <p className="t-small">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
-      <ul className={`grid gap-3 ${caseResultsWired() ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
-        <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-          <span><span className="t-body block font-semibold">Answer a few questions</span><span className="text-ink/70">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
-          <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
-        </li>
-        <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-          <span><span className="t-body block font-semibold">Take the diagnostic</span><span className="text-ink/70">About 15 minutes of short questions. More accurate.</span></span>
-          <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
-        </li>
-        {caseResultsWired() && (
-          <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-            <span><span className="t-body block font-semibold">Take a full case</span><span className="text-ink/70">About 35 minutes. The most accurate.</span></span>
-            <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
-          </li>
-        )}
+      <h2 id="get-plan" className="t-heading font-semibold">{START_CHOICE.heading}</h2>
+      {caseEndedEarly && <p className="t-small rounded-panel bg-sky/60 px-4 py-3">{START_CHOICE.endedEarly}</p>}
+      <p className="t-small">{START_CHOICE.lead}</p>
+      <ul className={`grid gap-3 ${choice?.case ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+        {card(START_CHOICE.questions.title, START_CHOICE.questions.body,
+          <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.questions.button}</Link>)}
+        {card(START_CHOICE.quiz.title, START_CHOICE.quiz.body,
+          <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : START_CHOICE.quiz.button}</Link>)}
+        {choice?.case && card(START_CHOICE.case.title, START_CHOICE.case.body,
+          choice.case.blocked
+            ? <span className={buttonVariants({ size: 'sm', variant: 'outline' }) + ' pointer-events-none opacity-50'} aria-disabled="true" role="link">{START_CHOICE.case.button}</span>
+            : <Link href={choice.case.href} className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.case.button}</Link>,
+          choice.case.blocked
+            ? <span role="status" className="block font-semibold text-ink">{choice.case.blocked}</span>
+            : choice.case.uses && <span className="block text-ink/70">{choice.case.uses}</span>)}
       </ul>
     </section>
   );

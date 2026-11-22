@@ -56,12 +56,20 @@ const RX = [
 
 // 'done': today's workout finished (extras offered); 'intro': a new Foundations
 // student who hasn't opened the intro lesson.
-function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first'): TrainingHomeData {
+// The starting-point choice's case card (Matt, 22 Nov): open, today's cases used, or the last case ended too early.
+const CHOICE = {
+  open: { case: { href: '/home?case=prof-001#cases', uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: false },
+  limit: { case: { href: '/home?case=prof-001#cases', uses: 'Uses one of today’s 2 cases.', blocked: 'You’ve used today’s 2 cases. Take the quiz now, or come back tomorrow.' }, endedEarly: false },
+  ended: { case: { href: '/home?case=prof-001#cases', uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: true },
+} as const;
+
+function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first', choice: keyof typeof CHOICE = 'open'): TrainingHomeData {
   const program = programView(kind === 'self' ? 'self_directed' : kind === 'intro' ? 'foundations' : 'standard');
   const base = {
     resume: kind === 'plan' || kind === 'done' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
     // A set set aside for another drill (Matt, 21 Nov).
     unfinished: kind === 'plan' ? [{ set_id: 'preview-aside', drill_name: 'Mental math', done: 2, size: 6 }] : [],
+    start_choice: kind === 'new' ? { case: { ...CHOICE[choice].case } } : null,
     // How CasePace works: a new student's first plan week.
     first_week: kind === 'first' || kind === 'intro' || kind === 'new',
     // The top skill in the shared ranking that today's workout doesn't cover (Matt, 15 Nov, D7).
@@ -237,6 +245,8 @@ export const DRILL_SCREENS: Screen[] = [
   { slug: 'browse-unfinished', path: '/drills/browse', chrome: 'drills', area: 'Drills', title: 'Browse drills: a start while today’s workout set is unfinished (click Start)', render: () => ({ node: <BrowseDrills areas={catalog()} current={null} />, api: unfinishedStarts(true) }) },
   { slug: 'training-home-unfinished', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a start while a Browse set is unfinished (click a Practice)', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: unfinishedStarts(false) }) },
   { slug: 'training-home', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-new-limit', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet, today’s cases used', render: () => ({ node: <TrainingHome home={home('new', 'limit')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-new-ended', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet, the last case ended too early', render: () => ({ node: <TrainingHome home={home('new', 'ended')} checkin={null} caseEndedEarly />, api: STARTS }) },
   { slug: 'training-home-new', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
   { slug: 'training-home-done', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: today’s workout done', render: () => ({ node: <TrainingHome home={home('done')} checkin={null} />, api: STARTS }) },
   { slug: 'training-home-first', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: first week (How CasePace works)', render: () => ({ node: <TrainingHome home={home('first')} checkin={null} />, api: STARTS }) },

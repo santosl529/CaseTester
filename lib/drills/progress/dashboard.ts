@@ -59,6 +59,9 @@ export interface DashCase {
   ratings: Record<string, string>; findings: { tag: string; evidence: string }[];
   // Ended early (Rule 18A): never counts for readiness (Matt, 15 Nov, D9).
   partial?: boolean;
+  // A starting-point case set aside (lib/drills/program/starting-point.ts): not taken, so the student's next attempt
+  // at that case is their first for readiness.
+  setAside?: boolean;
 }
 
 // ------------------------------------------------------------------ basics
@@ -244,7 +247,7 @@ export function milestoneSkills(): string[] {
 // before is a retake (Matt, 2026-10-18).
 export function firstCompletions(cases: DashCase[]): DashCase[] {
   const seen = new Set<string>();
-  return [...cases].sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime()).filter(c => !seen.has(c.caseId) && (seen.add(c.caseId), true));
+  return cases.filter(c => !c.setAside).sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime()).filter(c => !seen.has(c.caseId) && (seen.add(c.caseId), true));
 }
 
 // What each state means, from the rules in engine.ts and case.ts (Matt, 13

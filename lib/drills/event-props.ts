@@ -38,6 +38,8 @@ export const DRILL_EVENT_PROPS = {
   // D4: the training program.
   onboarding_completed: ['track_suggested', 'interview_days_out', 'cases_done', 'workouts_per_week'],
   diagnostic_completed: ['overall_score', 'placements'],
+  // A case as the starting point (Matt, 21–22 Nov): its placements, and the quiz skills left for quick checks.
+  starting_point_placed: ['case_attempt_id', 'case_id', 'placements', 'untested'],
   program_assigned: ['track', 'plan_version', 'reason'],
   program_switched: ['track', 'plan_version', 'reason'],
   program_week_started: ['week', 'milestones_met'],

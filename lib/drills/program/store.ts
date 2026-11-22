@@ -3,6 +3,8 @@
 // today's workout (built once per local day), weekly targets and milestones,
 // and the next-case card. The rules live in ./plan.ts, ./workout.ts and
 // ./next-case.ts; this module loads, saves and logs.
+import { startingPointFor } from './starting-point-store';
+import { returningCase } from './starting-point';
 import 'server-only';
 import { z } from 'zod';
 import { and, desc, eq, gte, inArray, isNotNull } from 'drizzle-orm';
@@ -381,12 +383,12 @@ export async function workoutWithStatus(w: WorkoutRow): Promise<{ id: string; st
 // Cases a student completed, from the case product's sessions (case results
 // only arrive once the case grader sends them).
 async function completedCases(studentId: string) {
-  const rows = await db.select({ caseId: sessions.caseId, completedAt: sessions.completedAt }).from(sessions)
+  const rows = await db.select({ id: sessions.id, caseId: sessions.caseId, completedAt: sessions.completedAt }).from(sessions)
     .where(and(eq(sessions.userId, studentId), eq(sessions.status, 'completed'), isNotNull(sessions.completedAt)));
   const results = await db.select().from(caseResults).where(eq(caseResults.studentId, studentId));
   return rows.map(r => {
     const graded = results.filter(c => c.caseId === r.caseId).sort((a, b) => Math.abs(a.completedAt.getTime() - r.completedAt!.getTime()) - Math.abs(b.completedAt.getTime() - r.completedAt!.getTime()))[0];
-    return { case_id: r.caseId, completed_at: r.completedAt!, tier: graded?.difficultyTier ?? null, rubric: (graded?.rubricScores as Record<string, string> | undefined) ?? null };
+    return { session_id: r.id, case_id: r.caseId, completed_at: r.completedAt!, tier: graded?.difficultyTier ?? null, rubric: (graded?.rubricScores as Record<string, string> | undefined) ?? null };
   });
 }
 
@@ -453,8 +455,12 @@ async function practicedArea(studentId: string): Promise<string | null> {
 }
 
 // Only the cases students can start from Cases (not the demo, not an unlisted case).
-export async function nextCaseFor(studentId: string): Promise<NextCase | null> {
-  return pickNextCase(caseLibrary(), await completedCases(studentId), await practicedArea(studentId));
+export async function nextCaseFor(studentId: string, now = new Date()): Promise<NextCase | null> {
+  // A starting-point case set aside isn't taken; it comes back last, from 14 days on (starting-point.ts).
+  const sp = await startingPointFor(db, studentId);
+  const aside = sp?.setAside ? sp : null;
+  const taken = (await completedCases(studentId)).filter(c => !aside || c.session_id !== aside.caseAttemptId);
+  return pickNextCase(caseLibrary(), taken, await practicedArea(studentId), returningCase(aside, now));
 }
 
 // ------------------------------------------------------------- evidence

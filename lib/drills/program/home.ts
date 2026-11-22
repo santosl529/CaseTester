@@ -17,6 +17,7 @@ import { INTRO_LESSON_ID } from '../lessons';
 import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
+import { startChoice } from './start-choice';
 import { healDiagnostic } from '../grading/jobs';
 import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
@@ -65,6 +66,8 @@ export async function homeView(studentId: string, now = new Date()) {
   const resume = current && current.source !== 'diagnostic' ? { set_id: current.id, drill_name: getDrill(current.drillId).name } : null;
   // Sets set aside for another drill (Matt, 21 Nov), each with Resume.
   const unfinished = await setAsideSets(studentId);
+  // No plan source yet: the three starting-point options (Matt, 22 Nov).
+  const start_choice = plan.source ? null : await startChoice(studentId, now);
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
@@ -75,7 +78,7 @@ export async function homeView(studentId: string, now = new Date()) {
   const progress = await loadProgress(db, studentId);
   if (program.track === 'self_directed') {
     const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
-    return { kind: 'self_directed' as const, resume, unfinished, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
+    return { kind: 'self_directed' as const, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
   }
 
   const { timezone } = await studentToday(studentId, now);
@@ -115,7 +118,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, unfinished, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

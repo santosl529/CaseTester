@@ -4,7 +4,7 @@
 import 'server-only';
 import { logPendingEvents } from '../events';
 import { ingestCaseResultTx, type IngestResult } from './store';
-import { recordPlanSource } from '../program/plan-source';
+import { placeFromStartingPoint, recordPlanSource } from '../program/plan-source';
 import { refreshTodayWorkout } from '../program/store';
 import { recordNextSteps } from './next-steps-store';
 import { CaseResultPayloadSchema } from '../case-result';
@@ -16,6 +16,10 @@ export async function ingestCaseResult(payload: unknown): Promise<Omit<IngestRes
   // A case is the most reliable plan source (D6 round 2).
   if (result.status === 'ingested') {
     await recordPlanSource(studentId, 'case');
+    // A starting-point case places skills as the quiz would (Matt, 21–22 Nov), before today's workout is rebuilt.
+    await placeFromStartingPoint(CaseResultPayloadSchema.parse(payload))
+      .then(r => logPendingEvents(studentId, r.events))
+      .catch(err => console.error('[drills] starting-point placement after a case failed:', err));
     // Today's workout reflects the case straight away (Matt, 15 Nov); the case result stands if this fails.
     await refreshTodayWorkout(studentId).catch(err => console.error('[drills] workout refresh after a case failed:', err));
     // The report's "Your next steps", fixed now (Matt, 15 Nov, D5).
