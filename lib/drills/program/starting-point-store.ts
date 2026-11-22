@@ -1,9 +1,11 @@
 // The starting-point case against the database (rules: ./starting-point.ts). Read-only.
 import 'server-only';
-import { and, asc, eq, min } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, min, notInArray } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { caseResults, diagnostics, drillQuestionnaires } from '@/db/schema';
-import { isSetAside, startingPointCase, type StoredCase } from './starting-point';
+import { caseResults, diagnostics, drillQuestionnaires, sessions } from '@/db/schema';
+import { HOME_DEMO_CASE_IDS, LINK_ONLY_CASE_IDS } from '@/lib/cases/listed';
+import { caseResultsWired } from '../case-to-drills';
+import { isBuildingFromCase, isSetAside, startingPointCase, type StoredCase } from './starting-point';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Exec = typeof db | Tx;
@@ -29,3 +31,15 @@ export async function startingPointFor(x: Exec, studentId: string): Promise<Star
   const sp = startingPointCase(rows.map(r => ({ ...r, rubric: r.rubric as Record<string, string> | null })), await otherSourceAt(x, studentId));
   return sp ? { ...sp, setAside: isSetAside(sp) } : null;
 }
+
+// Today's "building your plan" state (isBuildingFromCase).
+export async function buildingFromCase(studentId: string, planSource: string | null, now = new Date()): Promise<boolean> {
+  if (planSource !== 'case' || !caseResultsWired()) return false;
+  const [graded] = await db.select({ id: caseResults.caseAttemptId }).from(caseResults)
+    .where(and(eq(caseResults.studentId, studentId), eq(caseResults.backfilled, false))).limit(1);
+  const [last] = graded ? [] : await db.select({ at: sessions.completedAt }).from(sessions).where(and(
+    eq(sessions.userId, studentId), eq(sessions.status, 'completed'), isNotNull(sessions.completedAt),
+    notInArray(sessions.caseId, [...new Set([...HOME_DEMO_CASE_IDS, ...LINK_ONLY_CASE_IDS])]))).orderBy(desc(sessions.completedAt)).limit(1);
+  return isBuildingFromCase({ planSource, wired: true, hasCaseResult: Boolean(graded), lastCaseCompletedAt: last?.at ?? null, now });
+}
+

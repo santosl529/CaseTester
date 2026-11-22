@@ -9,11 +9,15 @@ export const START_CHOICE = {
   // Practicing on their own (Matt, 22 Nov): no plan, so the cards say what they get instead.
   selfQuestionsBody: 'Tell us about your experience and we’ll suggest what to practice. Your first sets include short checks.',
   selfQuizBody: '10 short drills across the core skills. Places 12 skills and suggests what to practice.',
-  case: { title: 'Case interview · about 30 min', body: 'A full mock interview (Brew & Bean) with a feedback report. Places the skills the case tests; the rest get a quick check later.', button: 'Start the case' },
+  // The case's length comes from the case (as on Cases): "Case interview · about 20 min, then a feedback report." (Matt, 22 Nov).
+  case: { title: (minutes: number) => `Case interview · about ${minutes} min, then a feedback report.`, body: 'A full mock interview (Brew & Bean) with a feedback report. Places the skills the case tests; the rest get a quick check later.', button: 'Start the case' },
 } as const;
 
 // The case card's limit lines: "Uses one of today's 2 cases." while one can start; the daily limit's own line when
 // today's are used (other limits keep the Cases page's message).
+// While a starting-point case is being graded and its placements haven't arrived (Matt, 22 Nov).
+export const BUILDING_PLAN = 'We’re building your plan from your case. It’ll be ready in a few minutes.';
+
 export function caseCardLines(perDay: number, blocked: string | null): { uses: string; blocked: string | null } {
   return {
     uses: `Uses one of today’s ${perDay} cases.`,

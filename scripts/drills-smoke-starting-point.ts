@@ -12,14 +12,16 @@ import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
-  analyticsEvents, caseResults, diagnostics, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillQuestionnaires, drillSets, drillTiers,
+  analyticsEvents, caseResults, sessions, diagnostics, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillQuestionnaires, drillSets, drillTiers,
   gradingJobs, lessonViews, prescriptions, skillStateEvents, skillStates, studentDrillSettings, studentPrograms, studentProfiles, workouts,
 } from '@/db/schema';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { ingestCaseResult } from '@/lib/drills/progress/ingest';
 import { onboard } from '@/lib/drills/program/store';
 import { pendingChecks, submitQuestionnaire } from '@/lib/drills/program/plan-source';
-import { startingPointFor } from '@/lib/drills/program/starting-point-store';
+import { buildingFromCase, startingPointFor } from '@/lib/drills/program/starting-point-store';
+import { homeView } from '@/lib/drills/program/home';
+import { planFromCase } from '@/lib/drills/program/plan-source';
 import { dashboardCases } from '@/lib/drills/progress/case-source';
 import { nextCaseFor } from '@/lib/drills/program/store';
 import { caseResultsWired } from '@/lib/drills/case-to-drills';
@@ -106,7 +108,25 @@ async function main() {
     const rc2 = await ingestCaseResult(bb(c, new Date(), WEAK));
     check(rc2.retake === true, 'met the bar: the next attempt is a retake');
 
-    console.log('starting point: placement, quick checks, set aside for readiness and the picker, retakes');
+    // Between the case ending and its result: Today says the plan is being built, with no default workout.
+    const d = await newStudent();
+    const sid = randomUUID();
+    await db.insert(sessions).values({ id: sid, userId: d, caseId: 'prof-001', status: 'completed', phase: 'WRAP', startedAt: new Date(Date.now() - 25 * 60_000), completedAt: new Date(Date.now() - 2 * 60_000), flagsJsonb: {} } as never);
+    const hd = await homeView(d);
+    check(hd.kind === 'plan' && hd.building_plan === true && hd.workout === null, `just after the case: building, no workout (${hd.kind === 'plan' ? `${hd.building_plan}/${hd.workout === null}` : hd.kind})`);
+    await ingestCaseResult({ ...bb(d, new Date(Date.now() - 2 * 60_000), WEAK), case_attempt_id: sid });
+    const hd2 = await homeView(d);
+    check(hd2.kind === 'plan' && hd2.building_plan === false && hd2.workout !== null, 'once the result arrives: the workout');
+    check(!(await buildingFromCase(d, 'case')), 'not building once graded');
+
+    // The 7-minute demo never makes a plan.
+    const e = await newStudent();
+    await db.insert(sessions).values({ id: randomUUID(), userId: e, caseId: 'prof-001-demo', status: 'completed', phase: 'WRAP', startedAt: new Date(Date.now() - 10 * 60_000), completedAt: new Date(), flagsJsonb: {} } as never);
+    check(!(await planFromCase(e)), 'the demo is not a plan source');
+    const he = await homeView(e);
+    check(he.kind === 'plan' && he.start_choice !== null, 'after the demo, Today still offers the choice');
+
+    console.log('starting point: placement, quick checks, set aside for readiness and the picker, retakes, building, the demo');
   } finally {
     for (const s of students) {
       for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, s));
@@ -119,6 +139,7 @@ async function main() {
       await db.delete(workouts).where(eq(workouts.studentId, s));
       await db.delete(diagnostics).where(eq(diagnostics.studentId, s));
       await db.delete(caseResults).where(eq(caseResults.studentId, s));
+      await db.delete(sessions).where(eq(sessions.userId, s));
       await db.delete(studentPrograms).where(eq(studentPrograms.studentId, s));
       for (const t of [prescriptions, skillStateEvents, skillStates, drillTiers, studentDrillSettings, lessonViews, drillQuestionnaires]) await db.delete(t).where(eq(t.studentId, s));
       await db.delete(studentProfiles).where(eq(studentProfiles.userId, s));

@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/drills', useRouter: () 
 vi.mock('@/db/client', () => ({ db: {} }));
 
 import {
-  OBSERVED_DIMENSION, RETURN_AFTER_DAYS, STARTING_POINT_CASE_ID, casePlacements, isSetAside, quizSkills, returningCase, startingPointCase, untestedSkills,
+  BUILD_WAIT_MS, OBSERVED_DIMENSION, RETURN_AFTER_DAYS, isBuildingFromCase, STARTING_POINT_CASE_ID, casePlacements, isSetAside, quizSkills, returningCase, startingPointCase, untestedSkills,
 } from '@/lib/drills/program/starting-point';
 import { pickNextCase, type LibraryCase, type TakenCase } from '@/lib/drills/program/next-case';
 import { firstCompletions, readiness, type DashCase } from '@/lib/drills/progress/dashboard';
@@ -18,6 +18,8 @@ import { DEFAULT_DRILL_GROUPS } from '@/lib/drills/case-to-drills';
 import { START_CHOICE, caseCardLines } from '@/lib/drills/program/start-choice-text';
 import { DRILL_SCREENS } from '@/app/dev/ui-preview/_data/drills';
 import { getCaseById } from '@/lib/cases/loader';
+import { caseMinutes } from '@/lib/cases/listed';
+import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 import { newProgress, type SkillStateName } from '@/lib/drills/progress/engine';
 import { milestoneSkills } from '@/lib/drills/progress/dashboard';
 
@@ -148,7 +150,7 @@ describe('the choice (text approved by Matt, 22 Nov)', () => {
     const at = (t: string) => text.indexOf(t);
     expect(at('Quick questions · 2–3 min')).toBeGreaterThan(-1);
     expect(at('Quick questions · 2–3 min')).toBeLessThan(at('Quick quiz · about 15 min'));
-    expect(at('Quick quiz · about 15 min')).toBeLessThan(at('Case interview · about 30 min'));
+    expect(at('Quick quiz · about 15 min')).toBeLessThan(at('Case interview · about 20 min, then a feedback report.'));
     for (const t of [START_CHOICE.questions.body, START_CHOICE.quiz.body, START_CHOICE.case.body, 'Uses one of today’s 2 cases.']) expect(h).toContain(t);
     expect(h).toMatch(/<ul class="grid gap-3 sm:grid-cols-3">/);
     expect(h).toMatch(/href="\/drills\/questionnaire"[^>]*>Answer the questions</);
@@ -177,3 +179,34 @@ describe('the choice (text approved by Matt, 22 Nov)', () => {
     expect(caseCardLines(2, 'monthly').blocked).toBeNull();   // the Cases page's own message
   });
 });
+
+describe('the case card says the length Cases says (Matt, 22 Nov)', () => {
+  it('"Case interview · about 20 min, then a feedback report." — from the case, as on Cases', () => {
+    const cases = Math.round(caseTotalMs(getCaseById(STARTING_POINT_CASE_ID)) / 60_000);
+    expect(caseMinutes(STARTING_POINT_CASE_ID)).toBe(cases);
+    expect(START_CHOICE.case.title(cases)).toBe('Case interview · about 20 min, then a feedback report.');
+  });
+});
+
+describe('while the plan is built from a case (Matt, 22 Nov)', () => {
+  const base = { planSource: 'case', wired: true, hasCaseResult: false, lastCaseCompletedAt: new Date(now.getTime() - 3 * 60_000), now };
+  it('shows the message between the case ending and its result arriving', () => {
+    expect(isBuildingFromCase(base)).toBe(true);
+  });
+  it('not once the result has arrived, after the wait, for another plan source, or with the switch off', () => {
+    expect(isBuildingFromCase({ ...base, hasCaseResult: true })).toBe(false);
+    expect(isBuildingFromCase({ ...base, lastCaseCompletedAt: new Date(now.getTime() - BUILD_WAIT_MS) })).toBe(false);
+    expect(isBuildingFromCase({ ...base, planSource: 'diagnostic' })).toBe(false);
+    expect(isBuildingFromCase({ ...base, wired: false })).toBe(false);
+    expect(isBuildingFromCase({ ...base, lastCaseCompletedAt: null })).toBe(false);
+  });
+  it('Today: the message instead of a default workout or "Your plan is ready"', () => {
+    const h = renderToStaticMarkup((DRILL_SCREENS.find(s => s.slug === 'training-home-building')!.render() as { node: ReactNode }).node).replace(/&#x27;/g, '’');
+    expect(h).toContain('We’re building your plan from your case. It’ll be ready in a few minutes.');
+    expect(h).toMatch(/role="status"[^>]*>We’re building your plan/);
+    expect(h).not.toContain('Your plan is ready');
+    expect(h).not.toContain('Start today’s workout');
+    expect(h).not.toContain('Quick fix');
+  });
+});
+

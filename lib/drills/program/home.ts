@@ -18,6 +18,7 @@ import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type Op
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
 import { startChoice } from './start-choice';
+import { buildingFromCase } from './starting-point-store';
 import { healDiagnostic } from '../grading/jobs';
 import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
@@ -78,7 +79,7 @@ export async function homeView(studentId: string, now = new Date()) {
   const progress = await loadProgress(db, studentId);
   if (program.track === 'self_directed') {
     const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
-    return { kind: 'self_directed' as const, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
+    return { kind: 'self_directed' as const, building_plan: false, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
   }
 
   const { timezone } = await studentToday(studentId, now);
@@ -89,7 +90,9 @@ export async function homeView(studentId: string, now = new Date()) {
     const prevStatus = prev ? await weekStatus(studentId, program, prev, view!.plan, progress, timezone) : null;
     await noteWeekRollover(program, week, prevStatus?.milestone_met ?? null);
   }
-  const workoutRow = await todayWorkout(studentId, now);
+  // The case just ended and its placements haven't arrived: no default workout yet (Matt, 22 Nov).
+  const building = await buildingFromCase(studentId, program.planSource, now);
+  const workoutRow = building ? null : await todayWorkout(studentId, now);
   const workout = workoutRow ? await workoutWithStatus(workoutRow) : null;
   const covered = new Set((workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress').map(b => b.skill_id));
   const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered);
@@ -118,7 +121,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, building_plan: building, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

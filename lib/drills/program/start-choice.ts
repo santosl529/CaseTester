@@ -8,14 +8,14 @@ import 'server-only';
 import { db } from '@/db/client';
 import { caseResultsWired } from '../case-to-drills';
 import { STARTING_POINT_CASE_ID } from './starting-point';
-import { nextCaseHref } from '@/lib/cases/listed';
+import { caseMinutes, nextCaseHref } from '@/lib/cases/listed';
 import { decideSessionStart, sessionLimitsFromEnv, sessionStartDeps } from '@/lib/session-limits';
 import { limitMessage } from '@/lib/site/limit-message';
 import { caseCardLines } from './start-choice-text';
 
 export interface StartChoice {
   // null: case results don't reach drills, so no case option.
-  case: { href: string; uses: string | null; blocked: string | null } | null;
+  case: { href: string; minutes: number; uses: string | null; blocked: string | null } | null;
 }
 
 export async function startChoice(studentId: string, now = new Date()): Promise<StartChoice> {
@@ -28,6 +28,7 @@ export async function startChoice(studentId: string, now = new Date()): Promise<
   return {
     case: {
       href: nextCaseHref(STARTING_POINT_CASE_ID),
+      minutes: caseMinutes(STARTING_POINT_CASE_ID) ?? 20,
       uses: limits.exempt.has(studentId) ? null : lines.uses,
       blocked: decision.ok ? null : lines.blocked ?? limitMessage({ reason: decision.reason, limit: decision.limit, retryAt: decision.retryAt.toISOString() }),
     },

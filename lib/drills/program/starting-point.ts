@@ -95,3 +95,14 @@ export function returningCase(setAside: { caseId: string; completedAt: Date } | 
   if (!setAside) return null;
   return { caseId: setAside.caseId, eligible: now.getTime() - setAside.completedAt.getTime() >= RETURN_AFTER_DAYS * 86_400_000 };
 }
+
+// Between the case ending and its result reaching drills (grading ≈ 4 min, then tagging), the plan already comes from
+// the case but nothing is placed yet: Today shows "We're building your plan from your case…" instead of a default
+// workout (Matt, 22 Nov). Only while no graded case has arrived, and for up to BUILD_WAIT_MS after the case ended
+// (a report the student hasn't opened, or a failed grading, falls back to the workout).
+export const BUILD_WAIT_MS = 15 * 60_000;
+export function isBuildingFromCase(x: { planSource: string | null; wired: boolean; hasCaseResult: boolean; lastCaseCompletedAt: Date | null; now: Date }): boolean {
+  return x.planSource === 'case' && x.wired && !x.hasCaseResult && x.lastCaseCompletedAt !== null
+    && x.now.getTime() - x.lastCaseCompletedAt.getTime() < BUILD_WAIT_MS;
+}
+

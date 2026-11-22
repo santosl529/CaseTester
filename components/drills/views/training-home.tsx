@@ -7,7 +7,8 @@ import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';
 import { caseResultsWired } from '@/lib/drills/case-to-drills';
-import { START_CHOICE } from '@/lib/drills/program/start-choice-text';
+import { BUILDING_PLAN, START_CHOICE } from '@/lib/drills/program/start-choice-text';
+import { RefreshWhile } from '@/components/drills/refresh-while';
 import { AppPage } from '@/components/brand/page';
 import { StepDot } from '@/components/brand/progress';
 import { ArrowLink } from '@/components/brand/links';
@@ -41,6 +42,13 @@ function Title({ label, title }: { label: [string, string | null]; title: string
 // An interview in progress (Matt, 17 Nov, M3): its clock is running, so it leads the page while time is left.
 export type UnfinishedInterview = { caseTitle: string; status: string; href: string };
 export const INTERVIEW_IN_PROGRESS = 'Interview in progress';
+
+// A card title's time ("2–3 min", "about 20 min") never breaks across lines.
+function keepTimeTogether(title: string) {
+  const m = /(about )?\d+(–\d+)? min/.exec(title);
+  if (!m) return title;
+  return <>{title.slice(0, m.index)}<span className="whitespace-nowrap">{m[0]}</span>{title.slice(m.index + m[0].length)}</>;
+}
 
 export function TrainingHome({ home, checkin, interview = null, caseEndedEarly = false }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null; caseEndedEarly?: boolean }) {
   const interviewCard = interview && (
@@ -86,7 +94,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
   const choice = home.start_choice;
   const card = (title: string, body: string, action: React.ReactNode, extra?: React.ReactNode) => (
     <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-      <span className="space-y-1"><span className="t-body block font-semibold">{title.split(' · ')[0]} · <span className="whitespace-nowrap">{title.split(' · ')[1]}</span></span><span className="block text-ink/70">{body}</span>{extra}</span>
+      <span className="space-y-1"><span className="t-body block font-semibold">{keepTimeTogether(title)}</span><span className="block text-ink/70">{body}</span>{extra}</span>
       {action}
     </li>
   );
@@ -100,7 +108,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
           <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.questions.button}</Link>)}
         {card(START_CHOICE.quiz.title, self ? START_CHOICE.selfQuizBody : START_CHOICE.quiz.body,
           <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : START_CHOICE.quiz.button}</Link>)}
-        {choice?.case && card(START_CHOICE.case.title, START_CHOICE.case.body,
+        {choice?.case && card(START_CHOICE.case.title(choice.case.minutes), START_CHOICE.case.body,
           choice.case.blocked
             ? <span className={buttonVariants({ size: 'sm', variant: 'outline' }) + ' pointer-events-none opacity-50'} aria-disabled="true" role="link">{START_CHOICE.case.button}</span>
             : <Link href={choice.case.href} className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.case.button}</Link>,
@@ -111,7 +119,15 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
     </section>
   );
   // A new plan the student hasn't opened yet.
-  const planReady = home.plan.source && !home.plan.seen && (
+  // A case just ended and its placements haven't arrived (Matt, 22 Nov): this instead of a default workout.
+  const building = home.building_plan && (
+    <section aria-labelledby="building-plan" className="space-y-2 rounded-panel bg-sky/60 p-5 sm:p-6">
+      <h2 id="building-plan" className="t-heading font-semibold">Today&apos;s workout</h2>
+      <p role="status" className="t-body">{BUILDING_PLAN}</p>
+      <RefreshWhile />
+    </section>
+  );
+  const planReady = !home.building_plan && home.plan.source && !home.plan.seen && (
     <section aria-labelledby="plan-ready" className="space-y-3 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
       <h2 id="plan-ready" className="t-heading font-semibold">{self ? 'Your starting point is ready' : 'Your plan is ready'}</h2>
       <p className="t-small">Built from {SOURCE[home.plan.source]}. {self ? 'See where you start and what to practice first.' : "See this week's focus, your schedule and your first workout."}</p>
@@ -323,6 +339,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
         </section>
       )}
       {getPlan}
+      {building}
       {planReady}
       {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
       {!planFirst && workout && workout.blocks.length === 0 && (
@@ -336,7 +353,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
         </section>
       )}
       {!planFirst && (workoutDone ? doneCard : workoutCard)}
-      {workoutDone ? optional : quickFix(!fixShown)}
+      {workoutDone ? optional : !home.building_plan && quickFix(!fixShown)}
       {ws && (ws.workouts.target > 0 || ws.cases.target > 0 || ws.milestone_skills.length > 0) && (
         <section aria-labelledby="week" className="space-y-3">
           <h2 id="week" className="t-heading font-semibold">This week</h2>
