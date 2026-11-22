@@ -8,7 +8,7 @@
 //   no finding in a dimension rated Strong tests out (80% or more). Only skills the case observed or found something
 //   on, with a live drill, in a group whose tags may give drills (CASE_TAG_DRILL_GROUPS) — exhibits and judgment are off,
 //   so their skills stay unplaced. Skills the case can't place get a quick check when the plan first reaches them.
-// - Readiness (proposed, awaiting Matt's ruling): a starting-point case that did not meet the bar, or ended early, is
+// - Readiness (approved by Matt, 22 Nov: "fairer than never counts"): a starting-point case that did not meet the bar, or ended early, is
 //   set aside — it doesn't count as taken. The student's next attempt at that case is not a retake: it counts for
 //   readiness and the skill-state rules as a first attempt, and the next-case picker offers the case again, after the
 //   cases they haven't tried and no sooner than RETURN_AFTER_DAYS after the first attempt. A starting-point case that

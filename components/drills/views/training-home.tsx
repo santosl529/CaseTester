@@ -96,9 +96,9 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
       {caseEndedEarly && <p className="t-small rounded-panel bg-sky/60 px-4 py-3">{START_CHOICE.endedEarly}</p>}
       <p className="t-small">{START_CHOICE.lead}</p>
       <ul className={`grid gap-3 ${choice?.case ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
-        {card(START_CHOICE.questions.title, START_CHOICE.questions.body,
+        {card(START_CHOICE.questions.title, self ? START_CHOICE.selfQuestionsBody : START_CHOICE.questions.body,
           <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.questions.button}</Link>)}
-        {card(START_CHOICE.quiz.title, START_CHOICE.quiz.body,
+        {card(START_CHOICE.quiz.title, self ? START_CHOICE.selfQuizBody : START_CHOICE.quiz.body,
           <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : START_CHOICE.quiz.button}</Link>)}
         {choice?.case && card(START_CHOICE.case.title, START_CHOICE.case.body,
           choice.case.blocked

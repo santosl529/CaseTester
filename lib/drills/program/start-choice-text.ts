@@ -6,6 +6,9 @@ export const START_CHOICE = {
   endedEarly: 'Your case ended too early to place you.',
   questions: { title: 'Quick questions · 2–3 min', body: 'Tell us about your experience and we’ll build your plan. Your first workouts include short checks.', button: 'Answer the questions' },
   quiz: { title: 'Quick quiz · about 15 min', body: '10 short drills across the core skills. Places 12 skills and builds your plan.', button: 'Start the quiz' },
+  // Practicing on their own (Matt, 22 Nov): no plan, so the cards say what they get instead.
+  selfQuestionsBody: 'Tell us about your experience and we’ll suggest what to practice. Your first sets include short checks.',
+  selfQuizBody: '10 short drills across the core skills. Places 12 skills and suggests what to practice.',
   case: { title: 'Case interview · about 30 min', body: 'A full mock interview (Brew & Bean) with a feedback report. Places the skills the case tests; the rest get a quick check later.', button: 'Start the case' },
 } as const;
 

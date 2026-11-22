@@ -1,6 +1,6 @@
 // A case interview as the starting point (Matt, 21–22 Nov): the three-option choice, the placement rule (the quiz's
 // three places), quick checks for untested skills, and the starting-point case set aside for readiness when it didn't
-// meet the bar (proposed, awaiting Matt's ruling). The database side: `npm run drills:smoke:starting-point`.
+// meet the bar (approved by Matt, 22 Nov). The database side: `npm run drills:smoke:starting-point`.
 import { describe, it, expect, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -96,7 +96,7 @@ describe('placement: the quiz\'s three places (approved 22 Nov)', () => {
   });
 });
 
-describe('readiness with a set-aside starting point (proposed)', () => {
+describe('readiness with a set-aside starting point (approved 22 Nov)', () => {
   const strong = { structure: 'strong', quantitative: 'strong', synthesis: 'meets_bar' };
   const kase = (key: string, caseId: string, tier: number, d: number, ratings: Record<string, string>, extra: Partial<DashCase> = {}): DashCase =>
     ({ key, caseId, tier, completedAt: ago(d), ratings, findings: [], ...extra });
@@ -113,7 +113,7 @@ describe('readiness with a set-aside starting point (proposed)', () => {
   });
 });
 
-describe('the next-case picker with a set-aside starting point (proposed)', () => {
+describe('the next-case picker with a set-aside starting point (approved 22 Nov)', () => {
   const lib: LibraryCase[] = [
     { id: 'prof-001', title: 'Brew & Bean', case_type: 'profitability', tier: 2 },
     { id: 'prof-002', title: 'Larkspur', case_type: 'profitability', tier: 1 },
@@ -164,6 +164,13 @@ describe('the choice (text approved by Matt, 22 Nov)', () => {
   it('the last case ended too early: says so above the options', () => {
     expect(html('training-home-new-ended')).toContain('Your case ended too early to place you.');
     expect(html('training-home-new')).not.toContain('ended too early');
+  });
+  it('practicing on their own: the cards suggest what to practice, not a plan', () => {
+    const h = html('training-home-self-new');
+    expect(h).toContain('Tell us about your experience and we’ll suggest what to practice. Your first sets include short checks.');
+    expect(h).toContain('10 short drills across the core skills. Places 12 skills and suggests what to practice.');
+    expect(h).not.toContain('build your plan');
+    expect(h).not.toContain('builds your plan');
   });
   it('the daily line follows the limit', () => {
     expect(caseCardLines(3, 'daily')).toEqual({ uses: 'Uses one of today’s 3 cases.', blocked: 'You’ve used today’s 3 cases. Take the quiz now, or come back tomorrow.' });

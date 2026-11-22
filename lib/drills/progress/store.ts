@@ -249,7 +249,7 @@ async function caseHistory(x: Exec, payload: CaseResultPayload): Promise<{ previ
   )).orderBy(desc(caseResults.completedAt)).limit(1);
   const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
   // A starting-point case that was set aside (didn't meet the bar, or ended early) doesn't make the next attempt at
-  // that case a retake (lib/drills/program/starting-point.ts; proposed, awaiting Matt's ruling).
+  // that case a retake (lib/drills/program/starting-point.ts; approved by Matt, 22 Nov).
   const sp = await startingPointFor(x, studentId);
   const asideId = sp?.setAside && sp.caseAttemptId !== payload.case_attempt_id ? sp.caseAttemptId : null;
   const [earlierResult] = await x.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(
