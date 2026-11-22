@@ -60,10 +60,14 @@ export function PilotReports({ r, fb, orgs, org, days, type, page, cases, review
     <AppPage width="wide" className="space-y-12">
       <header className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
-          <h1 className="t-title">Pilot reports</h1>
-          <Link href="/drills" className="link t-small">Training home</Link>
+          <h1 className="t-title">Pilot reports: details</h1>
+          <nav aria-label="Report views" className="t-small flex gap-4">
+            <Link href={`/drills/reports${org ? `?org=${encodeURIComponent(org)}` : ''}`} className="link">Overview</Link>
+            <span aria-current="page" className="font-semibold">Details</span>
+          </nav>
         </div>
         <form className="t-small flex flex-wrap items-end gap-3">
+          <input type="hidden" name="tab" value="details" />
           <label className="space-y-1">
             <span className="block text-ink/70">Club</span>
             <select name="org" defaultValue={org ?? ''} className="h-9 rounded-field border border-ink/20 bg-white px-2">
@@ -107,6 +111,7 @@ export function PilotReports({ r, fb, orgs, org, days, type, page, cases, review
 
       <Section id="feedback" title="Feedback" how="The feedback button, item reports and answered check-ins, newest first (latest 100). The club filter above applies.">
         <form className="t-small flex flex-wrap items-end gap-3">
+          <input type="hidden" name="tab" value="details" />
           {org && <input type="hidden" name="org" value={org} />}
           <input type="hidden" name="days" value={days} />
           <label className="space-y-1">

@@ -84,6 +84,22 @@ No shadow review period: Matt dropped it and its 20-report requirement on 21 Nov
 
 **To turn it off in an emergency:** set `CASE_TO_DRILLS=off` (grading sends drills nothing; reports show no next steps) or `shadow` (tagged and stored, nothing shown), and redeploy. No code change. Case results already sent to drills stay there.
 
+## Pilot dashboard (Matt, 22 Nov 2026): what changes in the case product
+
+Branch `pilot-dashboard`, cut from `Drills-Update` (merge Drills-Update first). Pushed, not merged. `/drills/reports` becomes one weekly page for you and Matt (the same `REPORTS_ALLOWED_EMAILS` check; everyone else a 404); the earlier page is its Details tab. The interviewer, scoring and the voice agent are untouched; no migration. Case-product files it touches, each only to record an event (never failing the request):
+
+- **Sign-up** (`app/api/sign-up/route.ts`, `lib/site/sign-up.ts` now returns the new account's id): `signed_up` with the club and the visitor's anonymous daily code.
+- **Log-in** (`components/sign-in-flow.tsx`): after a successful log-in the form sends a beacon to the new `POST /api/auth/logged-in` (`logged_in`, the signed-in account only).
+- **Page views**: a small beacon in the root layout (`components/monitoring/page-views.tsx`, `app/layout.tsx`) on every page, to the new `POST /api/pv` (`lib/site/page-view.ts`): the cleaned path, and the account id or, logged out, a daily anonymous code (a hash of the day, IP address, browser and a server secret; the address isn't stored). No cookie, no browser storage; bots skipped; a new rate limit `pageView` (600 an hour per address).
+- **Report page** (`app/case/[sessionId]/report/page.tsx`): the owner's first view of a graded report is logged (`report_viewed`, after the page is sent).
+- **Case start** (`app/api/session/route.ts`): `case_limit_hit` (reason, limit) when a limit refuses a case.
+- **Voice**: the token route logs `voice_session_started`, and `voice_connect_failed` (busy) when the room cap refuses; the voice page (`components/voice-room.tsx`) sends a beacon to the new `POST /api/voice/[id]/failed` when the microphone is blocked, the audio can't connect, the interviewer never comes, or the connection drops. Nothing about the call itself changes.
+- **Wrong club codes** (`lib/club-alert.ts`): each one is also recorded (`club_code_rejected`, no code text).
+- **Privacy Policy**: Matt's line on page visits, and "Last updated" November 22, 2026 — **set it to the deploy date**.
+- **A new colour token** `--caution` (amber), used only on the founders' page.
+
+**Vercel settings (Production):** optionally `PAGE_VIEW_SECRET` (any long random value; unset, one is derived from the Supabase secret key). The Sentry token already there is read for weekly error counts (it needs `org:read`; without it the page shows "—"). Nothing else.
+
 ## Done 19 Nov 2026
 
 All of the steps below are done: merged (65b904b0, main 68034c15) and deployed; Vercel settings in (Sentry's four, `REPORTS_ALLOWED_EMAILS`, the rate limits, `CASE_TO_DRILLS=shadow`); LiveKit agent `9YxUohCHkfqg`; the reason rewrite applied (2 rows); Sentry project `casepace/casepace-web` with its alerts, test error received, IP storage off. `scripts/sentry-setup.ts` can no longer create alerts (Sentry retired that API; they were made with the Sentry CLI); `--check` still works. Details: technical PRD §16, 19 Nov.

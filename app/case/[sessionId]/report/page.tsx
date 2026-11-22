@@ -2,6 +2,8 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, scores } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
+import { after } from 'next/server';
+import { noteReportViewed } from '@/lib/site/report-viewed';
 import { isUuid } from '@/lib/http/route-guard';
 import { noReportView } from '@/lib/site/report-fallback';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -37,6 +39,10 @@ export default async function ReportPage({ params }: { params: Promise<{ session
     if (session.status !== 'completed') return <NoReportScreen caseTitle={caseTitle} {...noReportView(session.status, sessionId)} />;
     return <UnscoredReportScreen sessionId={sessionId} caseTitle={caseTitle} />;
   }
+
+  // The pilot dashboard's "read the report" (Matt, 22 Nov): the owner's first view of a graded report, logged once,
+  // after the page is sent (the page refreshes itself while next steps are prepared).
+  after(() => noteReportViewed(user.id, sessionId).catch(err => console.error('[report] report_viewed not logged', err)));
 
   const turns = await db.query.sessionTurns.findMany({
     where: eq(sessionTurns.sessionId, sessionId),

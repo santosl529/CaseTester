@@ -16,6 +16,8 @@
   --white: #FFFFFF;   /* cards */
   /* Errors and the timer's last 10 seconds only (Matt, 7 Nov). 6.6:1 on white. */
   --alert: #B42318;
+  /* The pilot dashboard's "close to target" (amber), founders only (Matt, 22 Nov). 5.6:1 on white. */
+  --caution: #B54708;
   /* The readiness meter's track. */
   --meter-track: #E3E2DC;
 

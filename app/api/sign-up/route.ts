@@ -4,6 +4,8 @@ import { parseSignUp, signUpDeps, signUpStudent } from '@/lib/site/sign-up';
 import { siteOrigin } from '@/lib/site/url';
 import { jsonRoute } from '@/lib/http/route-guard';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { logEvent } from '@/lib/analytics';
+import { visitorCode, visitorSecret } from '@/lib/site/page-view';
 
 // Create an account with a valid club code (Lorenzo, 8 Nov; lib/site/sign-up.ts). Limited per IP (5 an hour) before
 // anything else, so it can't be used to guess codes. Then either "check your email" (confirm first, 11 Nov) or, with
@@ -23,6 +25,10 @@ async function handlePOST(req: NextRequest) {
       const status = result.error === 'email_exists' ? 409 : result.error === 'email_unavailable' ? 503 : 400;
       return NextResponse.json({ error: result.error }, { status });
     }
+    // The pilot dashboard (Matt, 22 Nov): the club, and today's visitor code, which links this student to the
+    // page views they made before signing up that day (lib/site/page-view.ts). Never fails the sign-up.
+    await logEvent('signed_up', { org_id: form.orgId, visitor: visitorCode(clientIp(req), req.headers.get('user-agent') ?? '', new Date(), visitorSecret()) }, { userId: result.userId })
+      .catch(err => console.error('[sign-up] signed_up event not logged', err));
     if (result.verify) return NextResponse.json({ ok: true, verify: true });
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });

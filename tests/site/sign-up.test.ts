@@ -44,7 +44,7 @@ describe('signUpStudent', () => {
   it('no email sender configured: the account is confirmed at once (as before 11 Nov) and the club recorded', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const f = deps();
-    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false });
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false, userId: expect.any(String) });
     expect(f.calls).toEqual(['create:ann@example.com:confirmed', 'org:u1:ALPHA']);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
@@ -52,7 +52,7 @@ describe('signUpStudent', () => {
   it('with an email sender: the account is created unconfirmed, the link emailed, then the club recorded', async () => {
     const f = deps();
     f.d.sendVerification = async (email: string) => { f.calls.push(`email:${email}`); };
-    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: true });
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: true, userId: expect.any(String) });
     expect(f.calls).toEqual(['create:ann@example.com:unconfirmed', 'email:ann@example.com', 'org:u1:ALPHA']);
   });
   it('the email fails to send: the new account is removed so a retry works; email_unavailable', async () => {
@@ -76,7 +76,7 @@ describe('signUpStudent', () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});
     const f = deps({ recordOrg: async () => { throw new Error('db down'); } });
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false });
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false, userId: expect.any(String) });
     expect(err).toHaveBeenCalled();
     err.mockRestore();
   });

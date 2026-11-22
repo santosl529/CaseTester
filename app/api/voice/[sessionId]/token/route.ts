@@ -12,6 +12,7 @@ import { liveKitEnvProblem } from '@/lib/voice/livekit-env';
 import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { sessionRoute } from '@/lib/http/route-guard';
 import { voiceConsentFor } from '@/lib/voice/consent';
+import { logEvent } from '@/lib/analytics';
 
 // A LiveKit token for the session owner, and one dispatch of the voice agent
 // into the session's room (spec 2026-10-08-voice-phase-b §4). The key and
@@ -52,7 +53,10 @@ async function handlePOST(
   const room = voiceRoomName(sessionId);
   const candidates = liveVoiceRooms(await admin.listRooms(), room, Math.floor(Date.now() / 1000));
   const live = await activeRooms(candidates, admin);
-  if (live.length >= maxConcurrentVoice()) return NextResponse.json({ error: 'busy' }, { status: 429 });
+  if (live.length >= maxConcurrentVoice()) {
+    await logEvent('voice_connect_failed', { kind: 'busy' }, { sessionId, userId: user.id });
+    return NextResponse.json({ error: 'busy' }, { status: 429 });
+  }
 
   const at = new AccessToken(key, secret, { identity: user.id, ttl: '30m' });
   // The candidate publishes their microphone and nothing else (security audit, 6 Nov); data messages stay on for the
@@ -65,6 +69,8 @@ async function handlePOST(
   if (!existing.some(d => d.agentName === AGENT_NAME) && await claimVoiceDispatch(sessionId, Date.now())) {
     await admin.createDispatch(room, AGENT_NAME, { metadata: JSON.stringify({ sessionId }) });
   }
+  // The pilot dashboard counts voice sessions by the sessions with a token (a reload asks again: counted once there).
+  await logEvent('voice_session_started', {}, { sessionId, userId: user.id });
   return NextResponse.json({ url, token: await at.toJwt() });
 }
 

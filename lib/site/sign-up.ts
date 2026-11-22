@@ -33,7 +33,7 @@ export type SignUpDeps = {
   deleteUser: (userId: string) => Promise<void>;
   sendVerification: ((email: string) => Promise<void>) | null;   // null: no email sender configured
 };
-export type SignUpResult = { ok: true; verify: boolean } | { ok: false; error: 'email_exists' | 'weak_password' | 'email_unavailable' };
+export type SignUpResult = { ok: true; verify: boolean; userId: string } | { ok: false; error: 'email_exists' | 'weak_password' | 'email_unavailable' };
 
 export async function signUpStudent(form: Extract<SignUpForm, { ok: true }>, deps: SignUpDeps): Promise<SignUpResult> {
   const verify = deps.sendVerification != null;
@@ -55,7 +55,7 @@ export async function signUpStudent(form: Extract<SignUpForm, { ok: true }>, dep
     // The account exists; without the club on file, log-in asks for the code once (the club step) instead.
     console.error('[sign-up] account created but the club was not recorded', err);
   }
-  return { ok: true, verify };
+  return { ok: true, verify, userId: created.userId };
 }
 
 export async function signUpDeps(origin: string): Promise<SignUpDeps> {

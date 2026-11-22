@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="November 18, 2026">
+    <LegalPage title="Privacy Policy" updated="November 22, 2026">
       <div className="t-body space-y-4 text-(--ink)/85">
         <p>CasePace helps students practice consulting case interviews. This policy explains what we collect, why, and what you control. CasePace is run by its founders and is not yet incorporated; we will update this policy when that changes.</p>
       </div>
@@ -28,6 +28,8 @@ export default function PrivacyPage() {
           <li><strong className="font-semibold text-(--ink)">Basic usage data:</strong> pages visited, timestamps, device and browser type, and IP address.</li>
         </List>
         <p>We don’t collect payment details, government IDs, your GPA or your resume, and we don’t track you across other websites.</p>
+        {/* Page views for the pilot dashboard (Matt, 22 Nov 2026; his wording). */}
+        <p>We count page visits to improve CasePace. For visitors who aren’t logged in we use an anonymous code made from your IP address and browser that changes every day; we don’t store your IP address or use cookies for this. For logged-in students, page visits are linked to your account.</p>
       </Section>
 
       <Section id="use" title="How we use it">

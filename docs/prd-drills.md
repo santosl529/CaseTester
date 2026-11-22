@@ -1613,6 +1613,26 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 
 ### MVP reports
 
+**The pilot dashboard (Matt, 22 Nov 2026; `lib/drills/reports/weekly.ts`, `weekly-load.ts`, `components/drills/views/pilot-dashboard.tsx`).** `/drills/reports` opens on one weekly page for the founders (the same `REPORTS_ALLOWED_EMAILS` check; anyone else a 404); the reports below are its **Details** tab (`?tab=details`), unchanged. Real students only: not the test clubs, the evaluation accounts (100+ finished interviews) or the founders' own accounts. Filters: club, and a date range (default the last 8 weeks). Weeks run Monday to Sunday, US Eastern; a practice day is the student's own calendar day. Every percentage shows its count; no answers, transcripts or names.
+
+- **Five tiles** for the last full week in the range, with the change since the week before and a status (green at or above target, amber from 80% of it, red below; a dot and a word, never colour alone):
+  - **Start** (target 50%): of students whose first 7 days ended that week, those with a plan plus a finished drill set or full case within 7 days of sign-up; "Finished a first case" beside it.
+  - **Come back** (target 30%): of students whose week 4 (days 22–28) ended that week, those active in it.
+  - **Use** (target 2 or more): practice days (a finished drill set or a case started) per active student; cases per active student beside it.
+  - **Improve** (target 50%): skills a report flagged that the student then practised, judged by their next case at the same level (not a retake, not ended early) finished that week: improved when it didn't flag the skill again.
+  - **Value** (target 4.0): the average "how useful" post-case rating (1–5); realism beside it.
+- **Funnel** (students who signed up in the range): signed up → chose a starting point (a plan, a quiz part, the questions or a case started) → first drill set → first full case → read the report (`report_viewed`) → came back another day.
+- **Weekly cohorts:** by sign-up week, the share active in each of weeks 1–4 after sign-up (blank until the week is over).
+- **Website traffic** (`page_view`, our own and cookie-free): page views, logged-out visitors (a daily anonymous code: a hash of the day, IP address, browser and a server secret, `PAGE_VIEW_SECRET` or one derived from the Supabase secret; neither the address nor the browser string is stored), how many of them signed up that day (the same code on `signed_up`), logged-in students, sessions (30 minutes without a view ends one; length from the first view to the last), pages per session, and the top pages. Bots and the API, asset and dev paths are skipped; ids in paths become `:id`.
+- **Learning:** skills reaching Practiced, Mastered and Validated; case to case by dimension at the same level (up / same / down).
+- **Next steps follow-through:** skills listed on reports → clicked → practised → the skill's dimension went up in the next case at the same level.
+- **Reliability:** cases started and finished; voice sessions with a failure (`voice_connect_failed`: microphone blocked, no connection, no interviewer, dropped, busy) of those with a token (`voice_session_started`); Sentry errors (every user, from Sentry's own counts) per active student; stuck grading (answers grading gave up on, jobs still queued or running after 15 minutes); "My grade seems unfair" reports per 100 graded answers.
+- **Cost:** AI cost per active student per month, over the four weeks ending each week: drills grading against $1.25; cases (interview, grading, tagging) separately, with no target (they count against the case limits). Speech isn't included.
+- **Reach:** sign-ups and active students by club; wrong club codes typed per week (`club_code_rejected`, no code text; every club), a sign of word of mouth beyond the invited clubs.
+- **Limits:** of the students who started a case or hit a limit that week, the share who hit the daily or monthly case limit (`case_limit_hit`).
+- **Latest comments:** the last 10 Feedback-button messages and first-case check-in comments: text, page, date.
+- Tests: `tests/drills/pilot-dashboard.test.ts` (every definition, on a fixture pilot), `tests/api/pilot-events.test.ts`; `npm run drills:smoke:pilot-dashboard` (free); axe clean at 1440 and 390 px (preview `pilot-dashboard`).
+
 `/drills/reports`. In production only for the founder accounts listed in `REPORTS_ALLOWED_EMAILS` (comma-separated emails), checked on the server; anyone else gets a 404 (Matt, 17 Nov, pre-pilot audit M6; it was local development only). Test clubs (`TEST_ORGS`) stay out; the case side also leaves out the evaluation accounts (100 or more finished interviews). The review queue it links to stays local. The case side comes first (`lib/drills/reports/case-side.ts`, tested):
 
 | Report | What it shows | How it's computed |

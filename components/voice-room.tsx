@@ -65,6 +65,14 @@ const fillerPref = fillerPrefStore(() => { try { return typeof window === 'undef
 // (components/voice-consent.tsx), and the token route refuses anyway.
 // `history`: the interview so far from the database (M2, 17 Nov): after a refresh the earlier turns and exhibits stay on
 // screen above the live captions; an exhibit already shown isn't repeated if the agent shows it again.
+// The pilot dashboard's failed voice sessions (Matt, 22 Nov): one beacon per failure; never blocks the page.
+function reportVoiceFailure(sessionId: string, kind: 'mic_blocked' | 'connect' | 'no_interviewer' | 'dropped') {
+  try {
+    const body = new Blob([JSON.stringify({ kind })], { type: 'application/json' });
+    navigator.sendBeacon?.(`/api/voice/${sessionId}/failed`, body);
+  } catch { /* reporting is best effort */ }
+}
+
 export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consentedAtLoad, history = [] }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode; consented: boolean; history?: HistoryMessage[] }) {
   const router = useRouter();
   const [consented, setConsented] = useState(consentedAtLoad);
@@ -264,6 +272,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consen
       watchdog.current?.stop();
       setConnecting(false);
       setProblem(RESUME_MESSAGE);
+      reportVoiceFailure(sessionId, 'dropped');
       setLocal(l => (l === 'live' || l === 'connecting' ? 'idle' : l));
     });
     // The interviewer left while the room stayed up (the agent crashed or was stopped): without this the screen froze
@@ -286,6 +295,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consen
       if (micTrack && ctx) timing.current.mic = times.span('micMeter', () => levelMeter(ctx, micTrack));
     } catch (e) {
       stopSetupObserver();
+      reportVoiceFailure(sessionId, e instanceof Error && e.name === 'NotAllowedError' ? 'mic_blocked' : 'connect');
       setProblem(e instanceof Error && e.name === 'NotAllowedError'
         ? 'Microphone access was blocked. Allow the microphone for this site (the icon in the address bar), then press Start — or continue in text.'
         : 'The audio couldn’t connect. Press Start to try again, or continue in text.');
@@ -307,6 +317,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consen
     setLocal('live');
     startHealth();
     watchdog.current = agentAudioWatchdog({ onTimeout: () => {
+      reportVoiceFailure(sessionId, 'no_interviewer');
       setConnecting(false);
       setProblem(VOICE_BUSY_MESSAGE);
       leave();   // the interviewer never came: free the room and cancel the dispatch

@@ -21,6 +21,7 @@
   --color-paper: var(--paper);
   --color-mastery: var(--mastery);
   --color-alert: var(--alert);
+  --color-caution: var(--caution);
   --color-meter-track: var(--meter-track);
   --radius-panel: var(--panel-radius);
   --radius-window: var(--window-radius);

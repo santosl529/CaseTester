@@ -14,6 +14,9 @@ const h = vi.hoisted(() => ({
 vi.mock('@/lib/voice/consent', () => ({ voiceConsentFor: async () => (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent !== true }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => h.session } } } }));
+// The pilot dashboard's voice events (22 Nov): recorded, not sent anywhere here.
+const voiceEvents = vi.hoisted(() => [] as unknown[][]);
+vi.mock('@/lib/analytics', () => ({ logEvent: async (...a: unknown[]) => { voiceEvents.push(a); } }));
 // The dispatch claim (lib/voice/dispatch-claim.ts), as Postgres would decide it: the first caller wins.
 const claim = vi.hoisted(() => ({ held: false }));
 vi.mock('@/lib/voice/dispatch-claim', () => ({
@@ -81,6 +84,8 @@ describe('voice token route', () => {
     expect((h.grants[0] as { canPublishSources?: unknown }).canPublishSources).toEqual([2]);
     expect(h.createDispatch).toHaveBeenCalledWith('case-51111111-1111-4111-8111-111111111111', 'case-interviewer', { metadata: JSON.stringify({ sessionId: '51111111-1111-4111-8111-111111111111' }) });
     expect((h as Record<string, unknown>).dispatchUrl).toBe('https://example.livekit.cloud');
+    // The pilot dashboard counts voice sessions by their tokens (22 Nov).
+    expect(voiceEvents.some(e => e[0] === 'voice_session_started' && (e[2] as { sessionId?: string }).sessionId === '51111111-1111-4111-8111-111111111111')).toBe(true);
   });
   it('does not dispatch a second agent into a room that has one (Review Focus 3)', async () => {
     h.listDispatch.mockResolvedValue([{ agentName: 'case-interviewer' }]);

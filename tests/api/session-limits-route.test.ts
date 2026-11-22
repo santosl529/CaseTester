@@ -5,7 +5,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const h = vi.hoisted(() => ({
   result: { ok: true, sessionId: 's1', openingText: 'Hi' } as Record<string, unknown>,
   calls: [] as unknown[],
+  events: [] as unknown[],
 }));
+vi.mock('@/lib/analytics', () => ({ logEvent: async (...a: unknown[]) => { h.events.push(a); } }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }) }));
 vi.mock('@/lib/club', () => ({ clubForCode: async () => null, storedClubOrg: async () => 'ALPHA', recordStudentOrg: async () => {} }));
 vi.mock('@/lib/orchestrator/start-session', () => ({
@@ -15,7 +17,7 @@ vi.mock('@/lib/orchestrator/start-session', () => ({
 const { POST } = await import('@/app/api/session/route');
 const call = () => POST(new Request('http://x/api/session', { method: 'POST', body: JSON.stringify({ caseId: 'prof-001' }) }) as never);
 
-beforeEach(() => { h.result = { ok: true, sessionId: 's1', openingText: 'Hi' }; h.calls.length = 0; });
+beforeEach(() => { h.result = { ok: true, sessionId: 's1', openingText: 'Hi' }; h.calls.length = 0; h.events.length = 0; });
 
 describe('session start limits at the route', () => {
   it('within the limits: the session starts', async () => {
@@ -29,6 +31,8 @@ describe('session start limits at the route', () => {
     const res = await call();
     expect(res.status).toBe(429);
     expect(await res.json()).toEqual({ error: 'session_limit', reason: 'daily', limit: 2, retryAt: '2026-11-07T14:00:00.000Z' });
+    // The pilot dashboard's Limits (22 Nov): the hit is logged with its reason.
+    expect(h.events).toEqual([['case_limit_hit', { reason: 'daily', limit: 2 }, { userId: 'u1' }]]);
   });
   it('the site ceiling: 429 with reason site', async () => {
     h.result = { ok: false, reason: 'site', limit: 150, retryAt: new Date('2026-12-01T00:00:00Z') };

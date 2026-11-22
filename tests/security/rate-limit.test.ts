@@ -20,6 +20,7 @@ describe('rateRule', () => {
       passwordReset: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PASSWORD_RESETS_PER_HOUR' },   // 10 Nov, Claude's proposal
       verifyResend: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_VERIFY_EMAILS_PER_HOUR' },   // 11 Nov, Claude's proposal
       problemReport: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PROBLEM_REPORTS_PER_HOUR' },   // 14 Nov, Claude's proposal
+      pageView: { limit: 600, windowMs: HOUR, env: 'RATE_LIMIT_PAGE_VIEWS_PER_HOUR' },   // 22 Nov, the pilot dashboard's page views
     });
     expect(rateRule('turn', {})).toEqual({ name: 'turn', limit: 20, windowMs: 60_000 });
   });
