@@ -190,6 +190,11 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
 
       {/* Disputing a grade, or anything else about this report (the privacy policy points here). */}
       <p className="t-small text-ink/70">Disagree with a rating, or something wrong with this report? <ReportProblem sessionId={sessionId} /></p>
+
+      {/* The way back once the report is read (Matt, 22 Nov). Outline: Start practice stays the page's main button. */}
+      <div className="border-t border-ink/12 pt-6">
+        <Link href="/drills" className={buttonVariants({ size: 'lg', variant: 'outline' })}>Back to Today</Link>
+      </div>
     </AppPage>
     <FeedbackButton />
     </>

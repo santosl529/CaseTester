@@ -30,3 +30,12 @@ describe('the report\'s skill areas', () => {
     expect(html).toContain('Select a skill area to see your detailed feedback.');
   });
 });
+
+describe('the end of the report (Matt, 22 Nov)', () => {
+  it('ends with a Back to Today button, after everything else', () => {
+    expect(html).toMatch(/<a [^>]*href="\/drills"[^>]*>Back to Today<\/a>/);
+    const at = html.indexOf('>Back to Today<');
+    for (const t of ['Report a problem', 'Problem structuring']) expect(html.indexOf(t)).toBeLessThan(at);
+  });
+});
+
