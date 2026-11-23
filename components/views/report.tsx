@@ -128,6 +128,8 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
 
       {drills?.comparison && <CaseCompare comparison={drills.comparison} />}
 
+      {/* Collapsed skill areas (Matt, 22 Nov): the grades at a glance; each opens to its feedback. */}
+      <p className="t-small text-ink/70">Select a skill area to see your detailed feedback.</p>
       <div className="space-y-4">
         {dimensions.map(d => (
           <ReportCard key={d.key} label={d.label} rating={d.rating} feedback={d.feedback} legacyEvidence={d.legacyEvidence} />
