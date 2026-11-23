@@ -4,6 +4,7 @@ import { ArrowLink } from '@/components/brand/links';
 import { drillsForSkill } from '@/lib/drills/drill-info';
 import { IntroLessonBody, LessonBody, type IntroLessonContent, type LessonContent } from '@/components/drills/lesson';
 import { IntroLessonActions, LessonActions } from '@/components/drills/lesson-actions';
+import { KindTag } from '@/components/drills/kind-tag';
 
 type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'case_report';
 
@@ -29,7 +30,7 @@ export function LessonScreen({ lesson, mode, source, start, reportCase }: {
           <section aria-labelledby="practice" className="t-small flex flex-wrap items-baseline gap-x-4 gap-y-1.5">
             <h2 id="practice" className="font-semibold">Practice this in:</h2>
             <ul className="contents">
-              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id}><ArrowLink href={`/drills/browse#drill-${d.drill_id}`}>{d.name}</ArrowLink></li>)}
+              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id}><KindTag kind="drill" /><ArrowLink href={`/drills/browse#drill-${d.drill_id}`}>{d.name}</ArrowLink></li>)}
             </ul>
           </section>
         )}

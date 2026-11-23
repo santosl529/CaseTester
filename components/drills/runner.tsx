@@ -15,6 +15,7 @@ import type { ChartSpec } from '@/lib/drills/chart-spec';
 import type { PublicItem } from '@/lib/drills/public-item';
 import type { ItemFeedback, StepFeedback, WorkedExample } from '@/lib/drills/sets/service';
 import { drillFetch, type DrillResponse } from '@/lib/drills/client-fetch';
+import { KindTag } from '@/components/drills/kind-tag';
 
 export interface RunnerView {
   set_id: string;
@@ -343,7 +344,7 @@ export function DrillRunner({ view, about }: { view: RunnerView; about?: { kind:
           {view.diagnostic
             ? <p className="t-small text-ink/70">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>
             : about && <p className="t-label font-semibold text-ink">{about.kind}</p>}
-          <h1 className="t-title">{view.drill.name}</h1>
+          <h1 className="t-title"><KindTag kind="drill" className="align-middle" />{view.drill.name}</h1>
           <p className="t-body text-ink/70">
             Trains {view.skills.map(s => s.name).join(', ')}.
             {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
@@ -469,7 +470,7 @@ export function DrillRunner({ view, about }: { view: RunnerView; about?: { kind:
     <section className="space-y-6">
       <div className="space-y-3">
         <div className="t-small flex items-baseline justify-between gap-3 text-ink/70">
-          <span className="font-medium text-ink">{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
+          <span className="font-medium text-ink">{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : <><KindTag kind="drill" />{view.drill.name}</>}</span>
           <span className="flex items-baseline gap-4">
             <ReportProblem setId={view.set_id} position={loaded.position} screen="item" />
             <span className="tabular-nums">Item {loaded.position + 1} of {loaded.size}</span>

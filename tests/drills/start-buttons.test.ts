@@ -134,7 +134,7 @@ describe('each page starts the drill its button names', () => {
   });
   it("Today: an Unfinished row resumes that set", () => {
     const html = decode(renderToStaticMarkup((DRILL_SCREENS.find(s => s.slug === 'training-home')!.render() as { node: ReactNode }).node));
-    expect(html).toMatch(/Unfinished: <span[^>]*>Mental math · 2 of 6 done<\/span>/);
+    expect(html).toMatch(/Unfinished: <span[^>]*>Drill<\/span> <span[^>]*>Mental math · 2 of 6 done<\/span>/);
     expect(find('training-home', 'Resume').body).toEqual({ resume_set_id: 'preview-aside' });
   });
   it('Your plan: Start first workout starts block 0', () => {

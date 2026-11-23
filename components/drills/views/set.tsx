@@ -11,6 +11,7 @@ import { getDrill } from '@/lib/drills/config';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { unfinishedLine, unfinishedNote } from '@/lib/drills/unfinished-text';
 import { drillDescription } from '@/lib/drills/drill-info';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const KIND = { recognize: 'Spot it', repair: 'Fix it', construct: 'Build it' } as const;
 
@@ -43,7 +44,7 @@ export function SetScreen({ view, expired, fromWorkout, setAside = false }: { vi
         ) : setAside ? (
           // Set aside for another drill (Matt, 21 Nov): Resume brings it back (or asks, if another set is unfinished).
           <section aria-labelledby="set-aside" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-            <h1 id="set-aside" className="t-heading font-semibold tabular-nums">{unfinishedLine({ drill_name: view.drill.name, done: view.position, size: view.size })}</h1>
+            <h1 id="set-aside" className="t-heading font-semibold tabular-nums"><KindTag kind="drill" />{unfinishedLine({ drill_name: view.drill.name, done: view.position, size: view.size })}</h1>
             <p className="t-small text-ink/70">{unfinishedNote({ workout: fromWorkout })}</p>
             <StartSetButton body={{ resume_set_id: view.set_id }} label={`Resume ${view.drill.name}`} size="lg" />
           </section>

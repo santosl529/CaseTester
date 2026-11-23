@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { drillFetch } from '@/lib/drills/client-fetch';
 
 import { UNFINISHED_TITLE, insteadLabel, resumeLabel, unfinishedLine, unfinishedNote, type Unfinished } from '@/lib/drills/unfinished-text';
+import { KindTag } from './kind-tag';
 export { UNFINISHED_TITLE, insteadLabel, resumeLabel, unfinishedLine, unfinishedNote, type Unfinished };
 
 // The 409 names the unfinished set (lib/drills/sets/service.ts unfinishedError).
@@ -80,7 +81,7 @@ export function UnfinishedSetDialog({ unfinished, busy, error, onResume, onInste
     <dialog ref={ref} aria-labelledby={`${id}-title`} aria-describedby={`${id}-body ${id}-note`} onClose={onCancel}
       className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-panel border border-ink/12 bg-white p-6 text-ink shadow-panel backdrop:bg-ink/40">
       <h2 id={`${id}-title`} className="t-heading font-semibold">{UNFINISHED_TITLE}</h2>
-      <p id={`${id}-body`} className="t-body mt-3 font-semibold tabular-nums">{unfinishedLine(unfinished)}</p>
+      <p id={`${id}-body`} className="t-body mt-3 font-semibold tabular-nums"><KindTag kind="drill" />{unfinishedLine(unfinished)}</p>
       <p id={`${id}-note`} className="t-small mt-1 text-ink/70">{unfinishedNote(unfinished)}</p>
       {error && <p role="alert" className="t-small mt-3 text-alert">{error}</p>}
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">

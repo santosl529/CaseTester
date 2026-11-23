@@ -15,6 +15,7 @@ import { ArrowLink } from '@/components/brand/links';
 import { WeekCount } from '@/components/drills/week-count';
 import { focusLine, lowerFirst, scoreLine, todaySections } from '@/lib/drills/today-page';
 import { HowItWorks } from '@/components/drills/how-it-works';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
@@ -72,7 +73,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
     <ul aria-label="Unfinished sets" className="space-y-2">
       {home.unfinished.map(u => (
         <li key={u.set_id} className="t-small flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-panel bg-sky/60 px-5 py-3">
-          <span className="tabular-nums">Unfinished: <span className="font-semibold">{unfinishedLine(u)}</span></span>
+          <span className="tabular-nums">Unfinished: <KindTag kind="drill" /><span className="font-semibold">{unfinishedLine(u)}</span></span>
           <StartSetButton body={{ resume_set_id: u.set_id }} label="Resume" name={`Resume ${u.drill_name}`} size="sm" variant="outline" />
         </li>
       ))}
@@ -171,7 +172,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
         {home.suggested && (
           <section aria-labelledby="suggested" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
             <h2 id="suggested" className="t-heading font-semibold">Suggested next</h2>
-            <p className="t-small"><span className="font-semibold">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
+            <p className="t-small"><span className="font-semibold">{home.suggested.skill_name}</span> · <KindTag kind="drill" />{home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
             <p className="t-small text-ink/70">{home.suggested.reason}</p>
             <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, placement_check: home.suggested.check || undefined, suggestion: { reason: home.suggested.reason, source: home.suggested.slot } }} label="Start" />
           </section>
@@ -251,7 +252,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
             <StepDot state={b.status === 'done' ? 'done' : i === next ? 'current' : 'todo'} className="mt-0.5" />
             <div className="min-w-0 flex-1 space-y-0.5">
               <p className="flex flex-wrap items-baseline justify-between gap-2">
-                <span><span className="text-ink/70">{SLOT[b.slot]} · </span><span className="font-semibold">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
+                <span><span className="text-ink/70">{SLOT[b.slot]} · </span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
                 <span className="text-ink/70 tabular-nums">{b.status === 'done' ? (b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done') : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
               </p>
               <p className="text-ink/70">{b.reason}</p>
@@ -281,7 +282,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
       <ul className="t-small space-y-1.5">
         {workout.blocks.map((b, i) => (
           <li key={i} className="flex flex-wrap items-baseline justify-between gap-x-3">
-            <span className="font-semibold">{getDrill(b.drill_id).name}</span>
+            <span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span></span>
             <span className="text-ink/70 tabular-nums">{b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done'}</span>
           </li>
         ))}
@@ -295,7 +296,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
       <ul className="space-y-2">
         {home.extra.map((b, i) => (
           <li key={i} className="flex flex-wrap items-center justify-between gap-2 t-small">
-            <span><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason} · {Math.max(1, Math.round(b.minutes))} min</span></span>
+            <span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason} · {Math.max(1, Math.round(b.minutes))} min</span></span>
             <StartSetButton size="sm" variant="outline" label={`Start ${getDrill(b.drill_id).name}`}
               body={b.check ? { skill_id: b.skill_id, quick_start: true, placement_check: true, browse: true } : { drill_id: b.drill_id, skill_id: b.skill_id, tier: b.tier, browse: true }} />
           </li>
@@ -311,7 +312,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
       {layout.optional.map(item => item === 'resume' && home.resume ? (
         <section key={item} aria-labelledby="resume-set" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
           <div className="space-y-0.5">
-            <h3 id="resume-set" className="t-card font-semibold">{home.resume.drill_name}</h3>
+            <h3 id="resume-set" className="t-card font-semibold"><KindTag kind="drill" />{home.resume.drill_name}</h3>
             <p className="t-small text-ink/70">In progress</p>
           </div>
           <Link href={`/drills/sets/${home.resume.set_id}`} className={buttonVariants({ variant: 'outline' })}>Resume</Link>
@@ -333,7 +334,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
       {unfinished}
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-          <h2 id="start-here" className="t-heading font-semibold">Start here: how a case interview works</h2>
+          <h2 id="start-here" className="t-heading font-semibold"><KindTag kind="lesson" />Start here: how a case interview works</h2>
           <p className="t-small">A short lesson on the four stages of a case, what interviewers look for in each, and the skills your plan trains for each one. Read it before your first workout.</p>
           <Link href="/drills/learn/intro?source=auto" className={buttonVariants({ size: 'lg' })}>Read it now</Link>
         </section>

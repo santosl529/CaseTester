@@ -9,6 +9,7 @@ import { LessonViewLog } from '@/components/drills/lesson-actions';
 import { CheckIn, ReportProblem } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { setResults } from '@/lib/drills/sets/service';
+import { KindTag } from '@/components/drills/kind-tag';
 
 type Results = Extract<Awaited<ReturnType<typeof setResults>>, { status: 'completed' }>;
 
@@ -28,7 +29,7 @@ export function SetResults({ results, checkin, blocksLeft }: { results: Results;
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <h1 className="t-title">{results.drill.name}: {results.score === null ? 'grading delayed' : `${Math.round(results.score * 100)}%`}</h1>
+        <h1 className="t-title"><KindTag kind="drill" className="align-middle" />{results.drill.name}: {results.score === null ? 'grading delayed' : `${Math.round(results.score * 100)}%`}</h1>
         {results.ungraded > 0 && (
           <p className="t-small">
             {results.score === null

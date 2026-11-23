@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import { ChevronRight } from 'lucide-react';
+import { KindTag } from '@/components/drills/kind-tag';
 
 export interface LessonContent {
   title: string;
@@ -80,7 +81,7 @@ export function LessonBody({ lesson, mode = 'full', embedded = false }: { lesson
     <>
       <header className="space-y-2">
         <p className="t-label text-ink/70"><span className="font-semibold text-ink">{lesson.skill_name}</span> · {mode === 'summary' ? 'lesson summary' : 'short lesson'}</p>
-        <Title className={embedded ? 't-heading font-semibold' : 't-title text-balance'}>{lesson.title}</Title>
+        <Title className={embedded ? 't-heading font-semibold' : 't-title text-balance'}><KindTag kind="lesson" className="align-middle" />{lesson.title}</Title>
       </header>
       <section aria-labelledby="idea">
         <h2 id="idea" className="sr-only">The idea</h2>
@@ -132,7 +133,7 @@ export function IntroLessonBody({ lesson, skills }: { lesson: IntroLessonContent
     <article className="space-y-8">
       <header className="space-y-2">
         <p className="t-label text-ink/70"><span className="font-semibold text-ink">Start here</span> · short lesson</p>
-        <h1 className="t-title text-balance">{lesson.title}</h1>
+        <h1 className="t-title text-balance"><KindTag kind="lesson" className="align-middle" />{lesson.title}</h1>
       </header>
       <div className="t-heading rounded-panel bg-sky/60 p-5 font-medium text-ink sm:p-6 [&_strong]:font-semibold"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
       {lesson.sections.map((s, i) => (

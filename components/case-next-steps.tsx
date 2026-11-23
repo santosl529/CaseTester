@@ -5,6 +5,7 @@ import { TrackedLink } from '@/components/tracked-link';
 import { PrepareNextSteps } from '@/components/prepare-next-steps';
 import type { NextStepsView } from '@/lib/drills/progress/report-view';
 import { coveredBy, practicedSkills, type NextStepsSnapshot } from '@/lib/drills/next-steps';
+import { KindTag } from '@/components/drills/kind-tag';
 
 // "Your next steps" at the end of a case report (Matt, 15 Nov; proposal §3,
 // wording approved with his edits). The list is fixed when the case result
@@ -106,7 +107,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
                       variant={i === 0 ? 'default' : 'outline'}
                       body={{ prescription_id: x.prescription_id, report: { case_attempt_id: caseAttemptId, skill_id: x.skill_id }, ...(coveredBy(s, x.skill_id).length > 0 && { also_skills: coveredBy(s, x.skill_id) }) }}
                       track={{ case_attempt_id: caseAttemptId, skill_id: x.skill_id, prescription_id: x.prescription_id, action: 'practice', position: i }} />
-                    <span className="t-small text-ink/70">{x.practice.drill_name} · Level {x.practice.level} · about {x.practice.minutes} min</span>
+                    <span className="t-small text-ink/70"><KindTag kind="drill" />{x.practice.drill_name} · Level {x.practice.level} · about {x.practice.minutes} min</span>
                   </>
                 )}
                 {x.covered_by && (
