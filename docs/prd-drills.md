@@ -311,6 +311,7 @@ Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the 
 
 ### Lessons
 
+- **Drills and lessons are labelled wherever they're named** (Matt, 22 Nov 2026, option A): a small **DRILL** (Cobalt) or **LESSON** (Sky) pill before the name on every student page (`components/drills/kind-tag.tsx`) — not inside buttons, nor in sentences that already say "set" or "lesson".
 - One short lesson per skill (600 words or fewer), with these parts:
   - the idea in one sentence;
   - why interviewers care;

@@ -97,6 +97,7 @@ Branch `pilot-dashboard`, cut from `Drills-Update` (merge Drills-Update first). 
 - **Wrong club codes** (`lib/club-alert.ts`): each one is also recorded (`club_code_rejected`, no code text).
 - **Privacy Policy**: Matt's line on page visits, and "Last updated" November 22, 2026 — **set it to the deploy date**.
 - **A new colour token** `--caution` (amber), used only on the founders' page.
+- **DRILL / LESSON labels** (Matt, 22 Nov): the report's next steps show a small DRILL pill before each practice set's name (as every drills page now does).
 - **The report's skill areas start collapsed** (Matt, 22 Nov; `components/report-card.tsx`, `components/views/report.tsx`): each card shows the skill area and its grade with "Show feedback", and opens to the same feedback as before. A line above the list: "Select a skill area to see your detailed feedback." UI only; the content and the PDF are unchanged. The report also ends with a **Back to Today** button (to `/drills`).
 
 **Vercel settings (Production):** optionally `PAGE_VIEW_SECRET` (any long random value; unset, one is derived from the Supabase secret key). The Sentry token already there is read for weekly error counts (it needs `org:read`; without it the page shows "—"). Nothing else.
