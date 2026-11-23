@@ -109,7 +109,8 @@ export async function homeView(studentId: string, now = new Date()) {
   const rx = await openPrescriptions(studentId);
   const allPracticed = rx.length > 0 && rx.every(r => stateRank(progress.get(r.skill_id)?.state ?? 'not_started') >= stateRank('practiced'));
   const caseLeft = status ? status.cases.done < status.cases.target : (view!.day?.cases ?? 0) > 0;
-  const nextCase = caseLeft || allPracticed ? await nextCaseFor(studentId) : null;
+  // No Next case card while the starting-point choice shows (Matt, 22 Nov): its case option is the one case offered.
+  const nextCase = plan.source && (caseLeft || allPracticed) ? await nextCaseFor(studentId) : null;
   if (nextCase) await logDrillEvent(studentId, 'next_case_card_shown', { recommended_case_id: nextCase.case_id, retake: nextCase.retake });
   // Today's workout done: optional extra sets (not counted toward the week).
   const done = workout !== null && workout.blocks.length > 0 && (workout.status === 'completed' || workout.blocks.every(b => b.status === 'done'));

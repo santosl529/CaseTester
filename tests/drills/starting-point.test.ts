@@ -155,13 +155,13 @@ describe('the choice (text approved by Matt, 22 Nov)', () => {
     expect(h).toMatch(/<ul class="grid gap-3 sm:grid-cols-3">/);
     expect(h).toMatch(/href="\/drills\/questionnaire"[^>]*>Answer the questions</);
     expect(h).toMatch(/href="\/drills\/diagnostic"[^>]*>Start the quiz</);
-    expect(h).toMatch(/href="\/home\?case=prof-001#cases"[^>]*>Start the case</);
+    expect(h).toMatch(/href="\/home\?case=prof-001#case-prof-001"[^>]*>Start the case</);
   });
   it('today\'s cases used: the case button is off and says why', () => {
     const h = html('training-home-new-limit');
     expect(h).toContain('You’ve used today’s 2 cases. Take the quiz now, or come back tomorrow.');
     expect(h).toMatch(/aria-disabled="true"[^>]*>Start the case</);
-    expect(h).not.toContain('href="/home?case=prof-001#cases"');
+    expect(h).not.toContain('href="/home?case=prof-001#case-prof-001"');
   });
   it('the last case ended too early: says so above the options', () => {
     expect(html('training-home-new-ended')).toContain('Your case ended too early to place you.');
