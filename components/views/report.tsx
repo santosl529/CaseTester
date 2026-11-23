@@ -15,6 +15,9 @@ import { Breadcrumbs } from '@/components/brand/breadcrumbs';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { PlainPoint } from '@/lib/scoring/judge';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
+import { CaseCompare } from '@/components/case-compare';
+import { CaseNextSteps, NextStepsLink, hasNextStepsSection } from '@/components/case-next-steps';
+import type { ReportDrillsView } from '@/lib/drills/progress/report-view';
 
 // A rating's pill (Matt, 7 Nov): Strong in Mastery green, Adequate in Sky,
 // Needs work in Cobalt.
@@ -79,9 +82,11 @@ export interface ReportData {
   dimensions: ReportDimension[];
   modelAnswer: Record<string, string> | null;
   turns: { id: string; role: string; text: string; clock: string }[];
+  // Case results → drills (Matt, 15 Nov): only when CASE_TO_DRILLS is on.
+  drills?: ReportDrillsView | null;
 }
 
-export function ReportScreen({ sessionId, caseTitle, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns }: ReportData) {
+export function ReportScreen({ sessionId, caseTitle, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns, drills }: ReportData) {
   return (
     <>
     <AppNav />
@@ -118,6 +123,13 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
         </section>
       )}
 
+      {/* S7 (Matt, 21 Nov): the way down to Your next steps, under the top improvement. */}
+      {hasNextStepsSection(drills?.nextSteps) && <NextStepsLink />}
+
+      {drills?.comparison && <CaseCompare comparison={drills.comparison} />}
+
+      {/* Collapsed skill areas (Matt, 22 Nov): the grades at a glance; each opens to its feedback. */}
+      <p className="t-small text-ink/70">Select a skill area to see your detailed feedback.</p>
       <div className="space-y-4">
         {dimensions.map(d => (
           <ReportCard key={d.key} label={d.label} rating={d.rating} feedback={d.feedback} legacyEvidence={d.legacyEvidence} />
@@ -142,6 +154,8 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
           </Card>
         );
       })()}
+
+      {drills?.nextSteps && <CaseNextSteps view={drills.nextSteps} sessionId={sessionId} />}
 
       <PostCaseSurvey sessionId={sessionId} />
 
@@ -176,6 +190,11 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
 
       {/* Disputing a grade, or anything else about this report (the privacy policy points here). */}
       <p className="t-small text-ink/70">Disagree with a rating, or something wrong with this report? <ReportProblem sessionId={sessionId} /></p>
+
+      {/* The way back once the report is read (Matt, 22 Nov). Outline: Start practice stays the page's main button. */}
+      <div className="border-t border-ink/12 pt-6">
+        <Link href="/drills" className={buttonVariants({ size: 'lg', variant: 'outline' })}>Back to Today</Link>
+      </div>
     </AppPage>
     <FeedbackButton />
     </>

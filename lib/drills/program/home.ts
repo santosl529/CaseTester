@@ -10,46 +10,47 @@ import { logDrillEvent } from '../events';
 import { newProgress, nextSetFor, stateRank, type SkillStateName } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import { openPrescriptions, skillProfile } from '../progress/profile';
-import { inProgressSet } from '../sets/service';
+import { inProgressSet, setAsideSets } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type WorkoutBlock } from './workout';
+import { blockFor, buildWorkout, pickQuickFix, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
+import { startChoice } from './start-choice';
+import { buildingFromCase } from './starting-point-store';
 import { healDiagnostic } from '../grading/jobs';
 import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
 import {
-  activeProgram, latestEvidence, nextCaseFor, noteWeekRollover, programView, studentToday, todayWorkout, weekStatus,
+  activeProgram, nextCaseFor, noteWeekRollover, programView, sharedRanking, studentToday, todayWorkout, weekStatus,
   workoutWithStatus,
   diagnosticReoffer, extraWorkout,
 } from './store';
 
 const DAY = 86_400_000;
 
-// The most frequent mistake of the last 30 days (drills and cases) and its
-// skill. `practice_minutes`: how long a quick-start set on the skill runs, as
-// the set service would pick it (the Today page's Quick fix button); null
-// when the skill has no live drill. Read only.
-async function weakestSkill(studentId: string, profile: Awaited<ReturnType<typeof skillProfile>>) {
-  const top = profile.top_mistakes[0];
-  if (!top) return null;
-  const skillId = profile.areas.flatMap(a => a.skills).find(s => s.name === top.skill_name)?.id ?? null;
-  let practiceMinutes: number | null = null;
-  if (skillId) {
-    const [progress, tiers, ctx, [settings]] = await Promise.all([
-      loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
-      db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
-    ]);
-    const next = nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
-    if (next) practiceMinutes = Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1)));
-  }
-  return {
-    skill_id: skillId, skill_name: top.skill_name, mistake: top.label, count: top.count, practice_minutes: practiceMinutes,
-    evidence: skillId ? await latestEvidence(studentId, skillId) : null,
-  };
+// Today's quick fix (Matt, 15 Nov, D7): the top skill in the shared ranking —
+// rankPrescriptions, the workout's and Progress's Focus areas' order, so the
+// three never disagree — that today's workout doesn't already cover, with that
+// prescription's reason. `practice_minutes`: how long a quick-start set on the
+// skill runs, as the set service would pick it; null when it has no live
+// drill. None open: no quick fix. Read only.
+// Never a drill today's workout already has (Matt, 22 Nov): a skill whose next set is one of the workout's drills is
+// passed over for the next one (`workoutDrills`).
+async function quickFixSkill(studentId: string, ranked: OpenPrescription[], covered: Set<string>, workoutDrills: Set<string> = new Set()) {
+  const [progress, tiers, ctx, [settings]] = await Promise.all([
+    loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
+    db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
+  ]);
+  const nextOf = (skillId: string) => nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
+  const pick = pickQuickFix(ranked, covered, workoutDrills, id => nextOf(id)?.drill_id ?? null);
+  if (!pick) return null;
+  const next = nextOf(pick.skill_id);
+  const practiceMinutes = next ? Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1))) : null;
+  return { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, reason: pick.reason, practice_minutes: practiceMinutes };
 }
+
 
 export async function homeView(studentId: string, now = new Date()) {
   if (!(await activeProgram(db, studentId))) return { kind: 'onboarding' as const };
@@ -63,7 +64,10 @@ export async function homeView(studentId: string, now = new Date()) {
   const plan = { source: program.planSource as PlanSource | null, seen: program.planSeenAt !== null };
   const [view, current, profile] = await Promise.all([programView(studentId, now), inProgressSet(studentId), skillProfile(studentId, now)]);
   const resume = current && current.source !== 'diagnostic' ? { set_id: current.id, drill_name: getDrill(current.drillId).name } : null;
-  const weakest = await weakestSkill(studentId, profile);
+  // Sets set aside for another drill (Matt, 21 Nov), each with Resume.
+  const unfinished = await setAsideSets(studentId);
+  // No plan source yet: the three starting-point options (Matt, 22 Nov).
+  const start_choice = plan.source ? null : await startChoice(studentId, now);
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
@@ -71,9 +75,12 @@ export async function homeView(studentId: string, now = new Date()) {
   const firstWeek = isFirstWeek(
     view?.plan.kind === 'weeks' ? { kind: 'weeks', week: view.week?.week ?? null } : { kind: view?.plan.kind === 'days' && program.track !== 'self_directed' ? 'days' : 'none', week: null },
     program.startedAt, now);
-  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
-
   const progress = await loadProgress(db, studentId);
+  if (program.track === 'self_directed') {
+    const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
+    return { kind: 'self_directed' as const, building_plan: false, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
+  }
+
   const { timezone } = await studentToday(studentId, now);
   const week = view!.week;
   const status = week ? await weekStatus(studentId, program, week, view!.plan, progress, timezone) : null;
@@ -82,8 +89,14 @@ export async function homeView(studentId: string, now = new Date()) {
     const prevStatus = prev ? await weekStatus(studentId, program, prev, view!.plan, progress, timezone) : null;
     await noteWeekRollover(program, week, prevStatus?.milestone_met ?? null);
   }
-  const workoutRow = await todayWorkout(studentId, now);
+  // The case just ended and its placements haven't arrived: no default workout yet (Matt, 22 Nov).
+  const building = await buildingFromCase(studentId, program.planSource, now);
+  const workoutRow = building ? null : await todayWorkout(studentId, now);
   const workout = workoutRow ? await workoutWithStatus(workoutRow) : null;
+  const left = (workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress');
+  // A block's skill and the skills its set also covers (S8).
+  const covered = new Set(left.flatMap(b => [b.skill_id, ...(b.also_skills ?? [])]));
+  const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered, new Set((workout?.blocks ?? []).map(b => b.drill_id)));
   // Foundations: the lesson opens before the first set of each skill.
   const nextBlock = workout?.blocks.find(b => b.status === 'todo');
   let lessonFirst = false;
@@ -91,13 +104,24 @@ export async function homeView(studentId: string, now = new Date()) {
     const lesson = await lessonForSkill(nextBlock.skill_id);
     lessonFirst = Boolean(lesson && !(await hasSeenLesson(studentId, lesson.lesson_id)));
   }
+  // Any set can be done first (Matt, 22 Nov): on Foundations, each set still not started whose skill's lesson isn't
+  // read yet opens that lesson first, as the main button does.
+  const lessonFirstBlocks: number[] = [];
+  if (program.track === 'foundations' && workout) {
+    for (const [i, b] of workout.blocks.entries()) {
+      if (b.status !== 'todo') continue;
+      const lesson = await lessonForSkill(b.skill_id);
+      if (lesson && !(await hasSeenLesson(studentId, lesson.lesson_id))) lessonFirstBlocks.push(i);
+    }
+  }
   // Foundations reads "How a case interview works" first, before week 1
   // (Matt, 2026-10-17): until it's seen, the home leads with it.
   const introFirst = program.track === 'foundations' && introLesson() !== null && !(await hasSeenLesson(studentId, INTRO_LESSON_ID));
   const rx = await openPrescriptions(studentId);
   const allPracticed = rx.length > 0 && rx.every(r => stateRank(progress.get(r.skill_id)?.state ?? 'not_started') >= stateRank('practiced'));
   const caseLeft = status ? status.cases.done < status.cases.target : (view!.day?.cases ?? 0) > 0;
-  const nextCase = caseLeft || allPracticed ? await nextCaseFor(studentId) : null;
+  // No Next case card while the starting-point choice shows (Matt, 22 Nov): its case option is the one case offered.
+  const nextCase = plan.source && (caseLeft || allPracticed) ? await nextCaseFor(studentId) : null;
   if (nextCase) await logDrillEvent(studentId, 'next_case_card_shown', { recommended_case_id: nextCase.case_id, retake: nextCase.retake });
   // Today's workout done: optional extra sets (not counted toward the week).
   const done = workout !== null && workout.blocks.length > 0 && (workout.status === 'completed' || workout.blocks.every(b => b.status === 'done'));
@@ -109,7 +133,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, building_plan: building, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, lesson_first_blocks: lessonFirstBlocks, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

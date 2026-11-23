@@ -6,6 +6,7 @@ import { StartSetButton } from '@/components/drills/start-set-button';
 import { PickDrill, type PickableDrill } from '@/components/drills/pick-drill';
 import { BrowseTabs } from '@/components/drills/browse-tabs';
 import { buttonVariants } from '@/components/ui/button';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const STATE = { not_started: 'Not started', learning: 'Learning', recognizes: 'Recognizes', practiced: 'Practiced', mastered: 'Mastered', validated: 'Validated' } as const;
 // One line per interview stage, as in "How a case interview works".
@@ -41,7 +42,7 @@ export function BrowseDrills({ areas, current }: { areas: CatalogData; current: 
           const pick = pickable.get(d.drill_id);
           return (
             <li key={d.drill_id} id={`drill-${d.drill_id}`} className="scroll-mt-20 space-y-1.5 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-              <h3 className="t-body font-semibold">{d.name}</h3>
+              <h3 className="t-body font-semibold"><KindTag kind="drill" />{d.name}</h3>
               {d.what && <p className="t-small">{d.what}</p>}
               {pick
                 ? <PickDrill skillId={d.primary_skill} drill={pick} compact meta={meta(d)} />
@@ -92,7 +93,7 @@ export function BrowseDrills({ areas, current }: { areas: CatalogData; current: 
       {current && (
         <section aria-labelledby="continue" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
           <div className="space-y-0.5">
-            <h2 id="continue" className="t-heading font-semibold">{current.name}</h2>
+            <h2 id="continue" className="t-heading font-semibold"><KindTag kind="drill" />{current.name}</h2>
             <p className="t-small text-ink/70 tabular-nums">{current.done} of {current.size} done</p>
           </div>
           <Link href={`/drills/sets/${current.id}`} className={buttonVariants({ size: 'lg' })}>Resume</Link>

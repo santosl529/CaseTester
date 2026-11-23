@@ -5,7 +5,7 @@ import { activeProgram } from '@/lib/drills/program/store';
 import { db } from '@/db/client';
 import { LessonScreen } from '@/components/drills/views/lesson';
 
-const SOURCES = ['auto', 'intro', 'library', 'low_score'] as const;
+const SOURCES = ['auto', 'intro', 'library', 'low_score', 'case_report'] as const;
 type Source = (typeof SOURCES)[number];
 
 // A lesson (docs/prd-drills.md "Lessons"). Opened from the Learn library, a
@@ -13,7 +13,7 @@ type Source = (typeof SOURCES)[number];
 // student's first set of a skill (then "Try it" starts that workout block).
 export default async function LessonPage({ params, searchParams }: {
   params: Promise<{ skillId: string }>;
-  searchParams: Promise<{ source?: string; workout?: string; block?: string }>;
+  searchParams: Promise<{ source?: string; workout?: string; block?: string; case?: string }>;
 }) {
   const studentId = await studentOrRedirect();
   const { skillId } = await params;
@@ -28,5 +28,7 @@ export default async function LessonPage({ params, searchParams }: {
   const start = sp.workout && sp.block !== undefined
     ? { workout_id: sp.workout, block: Number(sp.block) }
     : { skill_id: lesson.skill_id, quick_start: true };
-  return <LessonScreen lesson={lesson} mode={mode} source={source} start={start} />;
+  // Opened from a case report's next steps: the view counts as following them (Matt, 15 Nov).
+  const reportCase = source === 'case_report' && sp.case && /^[0-9a-f-]{36}$/i.test(sp.case) ? sp.case : undefined;
+  return <LessonScreen lesson={lesson} mode={mode} source={source} start={start} reportCase={reportCase} />;
 }

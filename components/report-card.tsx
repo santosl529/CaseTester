@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronDown } from 'lucide-react';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { DimensionFeedback, FeedbackItem } from '@/lib/scoring/judge';
 import { ratingLabel } from '@/lib/scoring/rubric';
@@ -55,18 +56,24 @@ function Point({ item }: { item: FeedbackItem }) {
   );
 }
 
+// Collapsed at first (Matt, 22 Nov): the skill area and its grade, with "Show feedback" to open the same content as
+// before. A native <details>: keyboard and screen readers get a disclosure that says whether it's open.
 export function ReportCard({ label, rating, feedback, legacyEvidence }: Props) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle>{label}</CardTitle>
+    <Card className="py-0">
+      <details className="group">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-2 rounded-panel px-5 py-4 transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+          <CardTitle className="min-w-0 basis-full sm:basis-auto sm:flex-1">{label}</CardTitle>
           <Badge variant={(rating && RATING_BADGE[rating]) || 'outline'}>
             {ratingLabel(rating)}
           </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-5">
+          <span className="t-small ml-auto inline-flex shrink-0 items-center gap-1 font-semibold text-cobalt">
+            <span className="group-open:hidden">Show feedback</span>
+            <span className="hidden group-open:inline">Hide feedback</span>
+            <ChevronDown aria-hidden="true" className="size-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </span>
+        </summary>
+      <CardContent className="space-y-5 pb-6">
         {feedback ? (
           <>
             {feedback.coverageCaveat && (
@@ -112,6 +119,7 @@ export function ReportCard({ label, rating, feedback, legacyEvidence }: Props) {
           legacyEvidence.map((q: string, i: number) => <Quote key={i}>{q}</Quote>)
         )}
       </CardContent>
+      </details>
     </Card>
   );
 }

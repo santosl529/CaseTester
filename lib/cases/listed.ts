@@ -38,6 +38,12 @@ export function listedCases(): ListedCase[] {
   ];
 }
 
+// A case's length in minutes, as Cases shows it ("about 20 min"); Today's starting-point card reads the same number.
+export function caseMinutes(caseId: string): number | null {
+  const c = loadCases().find(x => x.id === caseId);
+  return c ? Math.round(caseTotalMs(c) / 60_000) : null;
+}
+
 export function isListedCase(caseId: unknown): boolean {
   return typeof caseId === 'string' && listedCases().some(c => c.id === caseId);
 }

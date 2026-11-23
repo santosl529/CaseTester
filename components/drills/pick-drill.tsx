@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { StartSetButton } from './start-set-button';
+import { KindTag } from '@/components/drills/kind-tag';
 
 // The drill's kind in plain words (Matt, 13 Nov).
 const STAGE = { recognize: 'Spot it', repair: 'Fix it', construct: 'Build it' } as const;
@@ -26,7 +27,7 @@ export function PickDrill({ skillId, drill, compact = false, meta }: { skillId: 
       {compact ? <span className="text-ink/70">{meta}</span> : (
         <span>
           <span className="text-ink/70">{STAGE[drill.stage]} · </span>
-          <span className="font-semibold">{drill.name}</span>
+          <KindTag kind="drill" /><span className="font-semibold">{drill.name}</span>
           {drill.items && <span className="text-ink/70"> · {drill.items} items</span>}
         </span>
       )}

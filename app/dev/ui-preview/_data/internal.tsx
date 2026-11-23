@@ -1,4 +1,7 @@
 import { PilotReports } from '@/components/drills/views/pilot-reports';
+import { PilotDashboard } from '@/components/drills/views/pilot-dashboard';
+import { weeklyDashboard } from '@/lib/drills/reports/weekly';
+import { dashboardFixture } from './dashboard-fixture';
 import { LessonReviewScreen } from '@/components/drills/views/lesson-review';
 import { ReportQueueScreen, type ReportQueueData } from '@/components/drills/views/report-queue';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
@@ -77,6 +80,9 @@ function queue(): ReportQueueData {
 }
 
 export const INTERNAL_SCREENS: Screen[] = [
+  { slug: 'pilot-dashboard', path: '/drills/reports', chrome: 'drills', area: 'Internal', title: 'Pilot dashboard (founders only; a small fixture pilot)', render: () => ({
+    node: <PilotDashboard d={weeklyDashboard(dashboardFixture())} orgs={['everview', 'wharton']} org={null} from="2026-10-12" to="2026-11-22" detailsHref="/drills/reports?tab=details" />,
+  }) },
   { slug: 'pilot-reports', path: '/drills/reports', chrome: 'drills', area: 'Internal', title: 'Pilot reports (local development only)', render: () => { const { r, fb } = reports(); return { node: <PilotReports r={r} fb={fb} orgs={['harvard-cc', 'wharton-cc']} org={null} days={28} type={undefined} page={undefined} /> }; } },
   {
     slug: 'lesson-review', path: '/drills/review/lessons', chrome: 'drills', area: 'Internal', title: 'Lesson review (local development only)',

@@ -50,6 +50,8 @@ export function SignInFlow({ initialStep, next, created = false, deleted = false
         setUnconfirmed(result.error.code === 'email_not_confirmed' ? email.trim() : '');
         return false;
       }
+      // The pilot dashboard's logged_in (Matt, 22 Nov); a beacon survives the navigation below.
+      navigator.sendBeacon?.('/api/auth/logged-in');
       // /sign-in decides: on to `next` when the profile already has a valid code, else the club step.
       window.location.assign(`/sign-in?next=${encodeURIComponent(next)}`);
       return true;

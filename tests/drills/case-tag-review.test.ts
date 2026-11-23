@@ -18,11 +18,12 @@ const run: ReviewRun = {
   checker: [], labels: { 'dataExhibit:0': null }, read: false,
 };
 
-describe('the shadow review page', () => {
+describe('the case-tag review page', () => {
   const html = renderToStaticMarkup(createElement(CaseTagReviewScreen, { runs: [run], read: 0, since: '2026-11-16', tags: [{ id: 'M.overlapping_buckets', name: 'overlapping buckets (MECE structure)' }, { id: 'M.misread_trend', name: 'misread trend (Chart takeaway)' }] }));
-  it('shows progress toward 20 reports and when shadow started', () => {
-    expect(html).toContain('0 of 20 real reports read');
-    expect(html).toContain('Shadow since 2026-11-16');
+  // No shadow review period or 20-report target since 21 Nov (Matt): the page counts labeled reports, for the gates.
+  it('counts the reports read, with no target or shadow deadline', () => {
+    expect(html).toContain('0 reports read (every point labeled). Runs recorded since 2026-11-16.');
+    expect(html).not.toMatch(/of 20|two weeks|Shadow since/);
   });
   it('shows each point with the tagger’s tag, whether its group gives a drill, and a labeled control', () => {
     expect(html).toContain('no drill (group off)');

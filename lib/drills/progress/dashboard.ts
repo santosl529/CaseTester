@@ -57,6 +57,11 @@ export interface DashEvent { skillId: string; fromState: SkillStateName; toState
 export interface DashCase {
   key: string; caseId: string; tier: number; completedAt: Date;
   ratings: Record<string, string>; findings: { tag: string; evidence: string }[];
+  // Ended early (Rule 18A): never counts for readiness (Matt, 15 Nov, D9).
+  partial?: boolean;
+  // A starting-point case set aside (lib/drills/program/starting-point.ts): not taken, so the student's next attempt
+  // at that case is their first for readiness.
+  setAside?: boolean;
 }
 
 // ------------------------------------------------------------------ basics
@@ -242,7 +247,7 @@ export function milestoneSkills(): string[] {
 // before is a retake (Matt, 2026-10-18).
 export function firstCompletions(cases: DashCase[]): DashCase[] {
   const seen = new Set<string>();
-  return [...cases].sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime()).filter(c => !seen.has(c.caseId) && (seen.add(c.caseId), true));
+  return cases.filter(c => !c.setAside).sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime()).filter(c => !seen.has(c.caseId) && (seen.add(c.caseId), true));
 }
 
 // What each state means, from the rules in engine.ts and case.ts (Matt, 13
@@ -272,7 +277,7 @@ export function readiness(progress: Map<string, SkillProgress>, live: string[], 
   const others = live.filter(id => !milestones.includes(id));
   const mDone = milestones.filter(id => atLeast(id, r.milestone_min_state)).length;
   const oDone = others.filter(id => atLeast(id, r.other_min_state)).length;
-  const eligible = firstCompletions(cases).filter(c => c.tier >= r.case_min_tier).slice(-r.cases_needed);
+  const eligible = firstCompletions(cases).filter(c => c.tier >= r.case_min_tier && !c.partial).slice(-r.cases_needed);
   const metBar = eligible.filter(c => metTheBar(c.ratings)).length;
   const casesMet = eligible.length === r.cases_needed && metBar === r.cases_needed;
   const lines: ReadinessLine[] = [

@@ -13,6 +13,9 @@ export const DRILL_EVENT_PROPS = {
   drill_attempt_submitted: ['attempt_id', 'score', 'time_ms', 'timed_out', 'skipped', 'mistake_tags'],
   drill_set_completed: ['set_id', 'set_score', 'passed', 'duration_ms', 'skill_scores'],
   drill_set_expired: ['set_id', 'items_completed'],
+  // One unfinished set at a time (Matt, 21 Nov): "Start … instead" sets the unfinished set aside; Resume brings it back.
+  drill_set_set_aside: ['set_id', 'items_completed', 'for_drill_id'],
+  drill_set_resumed: ['set_id', 'items_completed'],
   grading_job_completed: ['job_id', 'status', 'retries', 'latency_ms', 'input_tokens', 'output_tokens', 'cost_usd'],
   // Feedback timing: one per written answer a grading job saves.
   answer_graded: ['attempt_id', 'drill_id', 'feedback_mode', 'job', 'grading_ms', 'wait_ms', 'status'],
@@ -25,12 +28,18 @@ export const DRILL_EVENT_PROPS = {
   next_case_card_shown: ['recommended_case_id'],
   next_case_card_clicked: ['recommended_case_id'],
   case_result_received: ['case_attempt_id', 'case_type', 'difficulty_tier', 'finding_count'],
+  // Case results → drills (Matt, 15 Nov): whether students follow a report's next steps.
+  next_steps_shown: ['case_attempt_id', 'skill_ids', 'no_drill_skill_id', 'all_clear', 'retake', 'partial'],
+  next_step_clicked: ['case_attempt_id', 'skill_id', 'prescription_id', 'action', 'position'],
+  next_step_completed: ['case_attempt_id', 'skill_id', 'kind', 'set_id', 'passed'],
   transfer_check_completed: ['skill_id', 'score', 'passed', 'attempt_number'],
   prerequisite_prescribed: ['skill_id', 'prerequisite_id'],
   transfer_pool_exhausted: ['skill_id', 'drill_id'],
   // D4: the training program.
   onboarding_completed: ['track_suggested', 'interview_days_out', 'cases_done', 'workouts_per_week'],
   diagnostic_completed: ['overall_score', 'placements'],
+  // A case as the starting point (Matt, 21–22 Nov): its placements, and the quiz skills left for quick checks.
+  starting_point_placed: ['case_attempt_id', 'case_id', 'placements', 'untested'],
   program_assigned: ['track', 'plan_version', 'reason'],
   program_switched: ['track', 'plan_version', 'reason'],
   program_week_started: ['week', 'milestones_met'],

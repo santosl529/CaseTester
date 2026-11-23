@@ -1,20 +1,21 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { drillFetch } from '@/lib/drills/client-fetch';
+import { useStartSet } from './use-start-set';
 
-type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up';
+type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up' | 'case_report';
 
 // Logs a lesson view with how long it was open, once: when the student acts,
 // or when they leave the page.
-function useLessonViewLog(lessonId: string, version: number, source: Source) {
+// `reportCase`: opened from a case report's next steps (Matt, 15 Nov).
+function useLessonViewLog(lessonId: string, version: number, source: Source, reportCase?: string) {
   const opened = useRef(0);
   const logged = useRef(false);
   const log = (skipped: boolean) => {
     if (logged.current) return;
     logged.current = true;
-    const body = JSON.stringify({ version, source, skipped, seconds_open: Math.round((Date.now() - opened.current) / 1000) });
+    const body = JSON.stringify({ version, source, skipped, seconds_open: Math.round((Date.now() - opened.current) / 1000), ...(reportCase && { case_attempt_id: reportCase }) });
     navigator.sendBeacon?.(`/api/drills/lessons/${lessonId}/views`, new Blob([body], { type: 'application/json' }));
   };
 
@@ -47,22 +48,15 @@ export function IntroLessonActions({ lessonId, version, source, next }: { lesson
 // "Try it" (and "Skip" when the lesson opened automatically): logs the view
 // with how long the lesson was open, then starts the skill's next set, or
 // the workout block that opened the lesson.
-export function LessonActions({ lessonId, version, source, start, skippable }: {
-  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean;
+export function LessonActions({ lessonId, version, source, start, skippable, reportCase }: {
+  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean; reportCase?: string;
 }) {
-  const router = useRouter();
-  const log = useLessonViewLog(lessonId, version, source);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  async function go(skipped: boolean) {
+  const log = useLessonViewLog(lessonId, version, source, reportCase);
+  const { start: startSet, busy, error, dialog } = useStartSet();
+  function go(skipped: boolean) {
+    if (busy) return;
     log(skipped);
-    setBusy(true);
-    const res = await drillFetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(start) });
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);
-    else setError(data.message ?? 'Could not start the set.');
+    void startSet(start);
   }
 
   return (
@@ -70,6 +64,7 @@ export function LessonActions({ lessonId, version, source, start, skippable }: {
       <Button size="lg" onClick={() => go(false)} disabled={busy}>Try it</Button>
       {skippable && <Button variant="ghost" onClick={() => go(true)} disabled={busy}>Skip the lesson</Button>}
       {error && <span role="alert" className="t-small text-alert">{error}</span>}
+      {dialog}
     </div>
   );
 }

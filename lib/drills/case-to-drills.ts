@@ -6,14 +6,15 @@
 //                          prescriptions; nothing is shown to the student and
 //                          nothing in drills changes
 //   CASE_TO_DRILLS=on      the case result goes to drills (ingestCaseResult)
-// Shadow ends when Matt has read 20 real reports or after 2 weeks; then he
-// decides on "on".
+// Production goes on for students with the Drills-Update deploy (Matt, 21 Nov 2026: no shadow review period, no
+// 20-report requirement). The switch stays so case results → drills can be turned off (or back to shadow) in an
+// emergency, by an environment change and a redeploy, with no code change.
 //
 // CASE_TAG_DRILL_GROUPS: the report groups whose tags may become findings
 // (a drill recommendation and a prescription). The rest are still tagged and
-// recorded, for the shadow review page, but give no drill. Default: the 7 that
+// recorded, for the case-tag review page, but give no drill. Default: the 7 that
 // passed the gate on 15 Nov. A group goes on only after its gate passes again
-// with real shadow points Matt has labeled.
+// with real points Matt has labeled (stored runs, in either mode).
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 
 export type CaseToDrillsMode = 'off' | 'shadow' | 'on';

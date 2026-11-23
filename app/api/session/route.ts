@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logEvent } from '@/lib/analytics';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStartableCase } from '@/lib/cases/listed';
 import { startSessionLimited } from '@/lib/orchestrator/start-session';
@@ -30,6 +31,7 @@ async function handlePOST(req: NextRequest) {
   // Within the student's limits (lib/session-limits.ts: 2 in 24 hours, 8 a month, a site-wide monthly ceiling).
   const started = await startSessionLimited(user.id, caseId);
   if (!started.ok) {
+    await logEvent('case_limit_hit', { reason: started.reason, limit: started.limit }, { userId: user.id });
     return NextResponse.json({ error: 'session_limit', reason: started.reason, limit: started.limit, retryAt: started.retryAt.toISOString() }, { status: 429 });
   }
   return NextResponse.json({ sessionId: started.sessionId, openingText: started.openingText });

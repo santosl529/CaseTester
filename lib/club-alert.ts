@@ -5,6 +5,7 @@
 // characters per code guessing is hopeless anyway — the email says someone is trying. The codes typed are never
 // put in the email. Failures are logged, never thrown: the student only ever sees "invalid code".
 import { db } from '@/db/client';
+import { logEvent } from '@/lib/analytics';
 import { rateLimitUpsertQuery } from '@/lib/rate-limit';
 import { emailConfig, sendEmail, type EmailMessage } from '@/lib/email/send';
 import { reportRecipient } from '@/lib/site/problem-report';
@@ -39,7 +40,10 @@ export type WrongCodeDeps = {
   send: (hits: number) => Promise<void>;
   threshold: number;
   log: (m: string) => void;
+  record?: () => Promise<void>;
 };
+
+const recordWrongCode = () => logEvent('club_code_rejected', {});
 
 const defaultDeps = (): WrongCodeDeps => ({
   count: async () => (await rateLimitUpsertQuery(db, KEY, new Date(), HOUR))[0].hits,
@@ -51,9 +55,12 @@ const defaultDeps = (): WrongCodeDeps => ({
   },
   threshold: wrongCodeThreshold(),
   log: m => console.error(m),
+  record: recordWrongCode,
 });
 
 export async function noteWrongClubCode(deps: WrongCodeDeps = defaultDeps()): Promise<void> {
+  // The pilot dashboard's wrong-code count per week (Matt, 22 Nov): no code text, no account.
+  await deps.record?.().catch(() => {});
   let hits: number;
   try {
     hits = await deps.count();

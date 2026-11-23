@@ -5,10 +5,10 @@
 // (case > diagnostic > questionnaire). Self-directed students get the same
 // placements and suggestions, with no plan.
 import 'server-only';
-import { and, count, desc, eq, inArray, isNotNull } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNotNull, notInArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db/client';
-import { drillQuestionnaires, drillSets, prescriptions, sessions, studentPrograms } from '@/db/schema';
+import { caseResults, drillQuestionnaires, drillSets, prescriptions, sessions, studentPrograms } from '@/db/schema';
 import { DRILLS_CONFIG, getSkill } from '../config';
 import { logDrillEvent, logPendingEvents } from '../events';
 import { isLiveDrill } from '../live';
@@ -18,6 +18,11 @@ import { placeFor } from './diagnostic';
 import { applyPlacements } from './diagnostic-store';
 import { addDays } from './plan';
 import { activeProgram, changeProgram, programView, ProgramError, studentToday } from './store';
+import { casePlacements, untestedSkills } from './starting-point';
+import { startingPointFor } from './starting-point-store';
+import { drillGroups } from '../case-to-drills';
+import type { CaseResultPayload } from '../case-result';
+import { HOME_DEMO_CASE_IDS, LINK_ONLY_CASE_IDS } from '@/lib/cases/listed';
 import { checkSkills, QUESTIONNAIRE_AREAS, questionnairePlacements, questionnairePrescriptions, type QuestionnaireArea, type Ratings } from './questionnaire';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -49,13 +54,34 @@ export async function recordPlanSource(studentId: string, source: PlanSource, no
 }
 
 // A completed full case session is a plan source; the case grader's findings,
-// when they arrive, update prescriptions through case ingestion.
+// when they arrive, update prescriptions through case ingestion. Never the
+// 7-minute demo (fixed 22 Nov: a student who tried the demo got "Built from
+// your first full case" and never saw the starting-point choice).
 export async function planFromCase(studentId: string): Promise<boolean> {
   const program = await activeProgram(db, studentId);
   if (!program || program.planSource === 'case') return false;
   const [c] = await db.select({ n: count() }).from(sessions)
-    .where(and(eq(sessions.userId, studentId), eq(sessions.status, 'completed'), isNotNull(sessions.completedAt)));
+    .where(and(eq(sessions.userId, studentId), eq(sessions.status, 'completed'), isNotNull(sessions.completedAt),
+      notInArray(sessions.caseId, [...new Set([...HOME_DEMO_CASE_IDS, ...LINK_ONLY_CASE_IDS])])));
   return c.n > 0 ? recordPlanSource(studentId, 'case') : false;
+}
+
+// A starting-point case places skills as the quiz would (Matt, 21–22 Nov; ./starting-point.ts). Runs after the case
+// result is ingested (lib/drills/progress/ingest.ts), in its own transaction; only for the starting-point case itself.
+export async function placeFromStartingPoint(payload: CaseResultPayload): Promise<{ placed: number; events: PendingEvent[] }> {
+  const studentId = payload.student_id;
+  return db.transaction(async tx => {
+    const sp = await startingPointFor(tx, studentId);
+    if (!sp || sp.caseAttemptId !== payload.case_attempt_id) return { placed: 0, events: [] };
+    const placed = casePlacements(payload, drillGroups(), isLiveDrill);
+    const { before, after, transitions } = await applyPlacements(tx, studentId, placed, 'case placement');
+    const events = await saveProgress(tx, studentId, before, after, transitions, { type: 'case', id: payload.case_attempt_id });
+    events.push({ type: 'starting_point_placed', props: {
+      case_attempt_id: payload.case_attempt_id, case_id: payload.case_id, partial: payload.partial ?? false,
+      placements: Object.fromEntries(Object.entries(placed).map(([k, v]) => [k, v.place])), untested: untestedSkills(placed, isLiveDrill),
+    } });
+    return { placed: Object.keys(placed).length, events };
+  });
 }
 
 // ------------------------------------------------------------- questionnaire
@@ -118,6 +144,7 @@ export async function latestQuestionnaire(studentId: string) {
 // its check (or the skill moved past Learning by other practice).
 export async function pendingChecks(studentId: string): Promise<string[]> {
   const program = await activeProgram(db, studentId);
+  if (program?.planSource === 'case') return caseChecks(studentId, program.track);
   if (program?.planSource !== 'questionnaire') return [];
   const q = await latestQuestionnaire(studentId);
   if (!q) return [];
@@ -126,6 +153,23 @@ export async function pendingChecks(studentId: string): Promise<string[]> {
   const progress = await loadProgress(db, studentId);
   return checkSkills(q.ratings, q.hardest, isLiveDrill)
     .filter(id => !done.has(id) && stateRank(progress.get(id)?.state ?? 'not_started') <= stateRank('learning'));
+}
+
+// A starting-point case: the quiz skills it couldn't place, each checked when the plan first reaches it — a skill of
+// this week's focus (Matt, 22 Nov: "the rest get a quick check later"); every one at once for a student practicing on
+// their own (their suggestion is one check at a time).
+async function caseChecks(studentId: string, track: string): Promise<string[]> {
+  const sp = await startingPointFor(db, studentId);
+  if (!sp) return [];
+  const [row] = await db.select().from(caseResults).where(eq(caseResults.caseAttemptId, sp.caseAttemptId));
+  if (!row) return [];
+  const placed = casePlacements({ findings: row.findings as CaseResultPayload['findings'], skills_observed: row.skillsObserved, rubric_scores: row.rubricScores as Record<string, string> }, drillGroups(), isLiveDrill);
+  const focus = track === 'self_directed' ? null : new Set((await programView(studentId))?.week?.focus_skills ?? []);
+  const done = new Set((await db.select({ skill: drillSets.focusSkill }).from(drillSets)
+    .where(and(eq(drillSets.studentId, studentId), eq(drillSets.isPlacementCheck, true), eq(drillSets.status, 'completed')))).map(r => r.skill));
+  const progress = await loadProgress(db, studentId);
+  return untestedSkills(placed, isLiveDrill)
+    .filter(id => (!focus || focus.has(id)) && !done.has(id) && stateRank(progress.get(id)?.state ?? 'not_started') <= stateRank('learning'));
 }
 
 // After a check set (finalizeSet): its score re-places the skill as the

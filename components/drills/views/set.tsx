@@ -8,7 +8,10 @@ import { GradingWait } from '@/components/drills/grading-wait';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { setResults } from '@/lib/drills/sets/service';
 import { getDrill } from '@/lib/drills/config';
+import { StartSetButton } from '@/components/drills/start-set-button';
+import { unfinishedLine, unfinishedNote } from '@/lib/drills/unfinished-text';
 import { drillDescription } from '@/lib/drills/drill-info';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const KIND = { recognize: 'Spot it', repair: 'Fix it', construct: 'Build it' } as const;
 
@@ -25,9 +28,9 @@ const LEAVE_SET = 'Leave this set? Your answers so far are saved, and you can re
 
 const trailStart = (today: boolean) => (today ? { label: 'Today', href: '/drills' } : { label: 'Drills', href: '/drills/browse' });
 
-export function SetScreen({ view, expired, fromWorkout }: { view: RunnerView; expired: boolean; fromWorkout: boolean }) {
+export function SetScreen({ view, expired, fromWorkout, setAside = false }: { view: RunnerView; expired: boolean; fromWorkout: boolean; setAside?: boolean }) {
   const today = fromWorkout || view.diagnostic !== null;
-  const confirm = expired ? undefined : LEAVE_SET;
+  const confirm = expired || setAside ? undefined : LEAVE_SET;
   const trail = view.diagnostic
     ? [trailStart(true), { label: 'Diagnostic', href: '/drills/diagnostic' }, { label: view.drill.name }]
     : [trailStart(today), { label: view.drill.name }];
@@ -38,6 +41,13 @@ export function SetScreen({ view, expired, fromWorkout }: { view: RunnerView; ex
         <Breadcrumbs trail={trail} confirm={confirm} />
         {expired ? (
           <p className="t-body">This set expired after 24 hours. Your answers were saved. <Link href="/drills" className="link">Start a new one</Link>.</p>
+        ) : setAside ? (
+          // Set aside for another drill (Matt, 21 Nov): Resume brings it back (or asks, if another set is unfinished).
+          <section aria-labelledby="set-aside" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
+            <h1 id="set-aside" className="t-heading font-semibold tabular-nums"><KindTag kind="drill" />{unfinishedLine({ drill_name: view.drill.name, done: view.position, size: view.size })}</h1>
+            <p className="t-small text-ink/70">{unfinishedNote({ workout: fromWorkout })}</p>
+            <StartSetButton body={{ resume_set_id: view.set_id }} label={`Resume ${view.drill.name}`} size="lg" />
+          </section>
         ) : (
           <DrillRunner view={view} about={{ kind: KIND[getDrill(view.drill.id).stage], why: drillDescription(view.drill.id)?.why ?? null }} />
         )}

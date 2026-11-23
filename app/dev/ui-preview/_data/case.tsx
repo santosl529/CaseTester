@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { FIRST_CASE_ID, byDifficulty, listedCases, linkOnlyCase } from '@/lib/cases/listed';
 import { getCaseById } from '@/lib/cases/loader';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
+import type { ReportDrillsView } from '@/lib/drills/progress/report-view';
+import type { NextStepsSnapshot } from '@/lib/drills/next-steps';
 import type { Screen } from '../_lib/types';
 import type { HistoryMessage } from '@/lib/site/case-history';
 
@@ -94,6 +96,48 @@ const PAST = [
   { id: 'p7', date: 'Oct 29, 2026', caseTitle: 'Quillpath SaaS Starter Plan Pricing', status: 'Ended', link: null },
 ];
 
+
+// Case results → drills (Matt, 15 Nov): the report's comparison and next steps, as on the mockup.
+const CASE_ID = '00000000-0000-4000-8000-0000000000aa';
+const SNAPSHOT: NextStepsSnapshot = {
+  version: 1, all_clear: false, partial: false, retake: false,
+  skills: [
+    { skill_id: 'QN.percentages', name: 'Percentages', why: 'You mixed up percent and percentage points.', quote: 'margin went from 18% to 12%, so it dropped 6 percent', prescription_id: '00000000-0000-4000-8000-0000000000b1', lesson: { minutes: 3 }, practice: { drill_name: 'Mental math', level: 2, minutes: 8 } },
+    { skill_id: 'PS.mece', name: 'MECE structure', why: 'Two of your buckets overlapped.', quote: 'I’d look at revenue, costs, and then also pricing', prescription_id: '00000000-0000-4000-8000-0000000000b2', lesson: { minutes: 3 }, practice: { drill_name: 'Fix the framework', level: 2, minutes: 10 } },
+    { skill_id: 'SY.answer_first', name: 'Answer first', why: 'Your recommendation came at the end instead of first.', quote: 'so looking at everything, there are a few things, and overall I think they should launch', prescription_id: '00000000-0000-4000-8000-0000000000b3', lesson: { minutes: 3 }, practice: { drill_name: 'Fix the recommendation', level: 2, minutes: 7 } },
+  ],
+  also: { skill_id: 'BJ.risks', name: 'Risks and next steps', why: 'Your risk could apply to any company.', quote: 'the main risk is the economy could change', lesson: null, tip: 'Next time, name a risk that only this company faces, such as the shelf-space fee in Exhibit 2.' },
+};
+const COMPARISON: NonNullable<ReportDrillsView['comparison']> = {
+  kind: 'same_level', previousTitle: 'Larkspur Air Route Profitability',
+  previous: { sessionId: 'prev', caseId: 'prof-002', tier: 1, completedAt: new Date('2026-11-03T15:00:00Z'), ratings: {}, partial: false },
+  rows: [
+    { dimension: 'structure', before: 'needs_work', after: 'meets_bar', move: 1, sets: 4 },
+    { dimension: 'quantitative', before: 'meets_bar', after: 'meets_bar', move: 0, sets: 0 },
+    { dimension: 'dataExhibit', before: 'meets_bar', after: 'strong', move: 1, sets: 2 },
+    { dimension: 'judgment', before: 'meets_bar', after: 'needs_work', move: -1, sets: 0 },
+    { dimension: 'creativity', before: 'meets_bar', after: 'meets_bar', move: 0, sets: 0 },
+    { dimension: 'synthesis', before: 'needs_work', after: 'needs_work', move: 0, sets: 0 },
+    { dimension: 'communication', before: 'strong', after: 'strong', move: 0, sets: 0 },
+    { dimension: 'pushback', before: 'meets_bar', after: 'strong', move: 1, sets: 0 },
+  ],
+};
+const STRENGTHS = [
+  { label: 'Data & Exhibit Interpretation', text: 'You read Exhibit 2’s trend and named what it meant for the launch.', quote: 'shelf share is flat but velocity is up, so the issue is distribution, not demand' },
+  { label: 'Communication & Delivery', text: 'Your answers were short and clear throughout.', quote: null },
+];
+const ready = (snapshot: NextStepsSnapshot, extra: Partial<Extract<NonNullable<ReportDrillsView['nextSteps']>, { state: 'ready' }>> = {}): NonNullable<ReportDrillsView['nextSteps']> =>
+  ({ state: 'ready', caseAttemptId: CASE_ID, snapshot, done: ['QN.percentages'], ready: false, minutes: 34, nextCase: { title: 'Brew & Bean Profitability', difficulty: 'Medium' }, strengths: STRENGTHS, ...extra });
+const reportWith = (slug: string, title: string, drills: ReportDrillsView) => ({
+  slug, path: `/case/${CASE_ID}/report`, area: 'Feedback', title,
+  render: () => ({
+    node: <ReportScreen sessionId={CASE_ID} caseTitle="Hollis Bay Snacks New Product Launch" partial={drills.nextSteps?.state === 'ready' && drills.nextSteps.snapshot.partial} overallRating="meets_bar" hasTopFix
+      topFix={{ where: 'The math on the margin change', what: 'You called a drop from 18% to 12% “6 percent”.', why: 'It is 6 percentage points, a third of the margin.', next: 'Next time, say “points” for a change in a percentage.' }}
+      topFixLine={null} dimensions={DIMENSIONS} modelAnswer={null} turns={[]} drills={drills} />,
+    api: [{ method: 'POST', path: '/api/(feedback|drills/next-steps|drills/sets).*', body: { ok: true } }],
+  }),
+});
+
 export const CASE_SCREENS: Screen[] = [
   { slug: 'sign-in', path: '/sign-in', area: 'Auth', title: 'Sign in', render: () => ({ node: <SignInFlow initialStep="auth" next="/home" /> }) },
   { slug: 'sign-in-club', path: '/sign-in', area: 'Auth', title: 'Sign in: club code', render: () => ({ node: <SignInFlow initialStep="club" next="/home" /> }) },
@@ -158,5 +202,19 @@ export const CASE_SCREENS: Screen[] = [
     slug: 'error', area: 'Other', title: 'Error page',
     render: () => ({ node: <StatusScreen code="Error" title="Something went wrong." body="This page didn’t load. Try again, or go back to the homepage."><span className={buttonVariants({ size: 'lg' })}>Try again</span><Link href="/" className="link t-body">Go to the homepage</Link></StatusScreen> }),
   },
-  { slug: 'report-unscored', path: '/case/preview-unscored/report', area: 'Feedback', title: 'Feedback report, not prepared yet', render: () => ({ node: <UnscoredReportScreen sessionId="preview-unscored" caseTitle="Brew & Bean Profitability" /> }) },
+  { slug: 'report-unscored', path: '/case/preview-unscored/report', area: 'Feedback', title: 'Feedback report, not prepared yet', render: () => ({ node: <UnscoredReportScreen sessionId="preview-unscored" caseTitle="Brew & Bean Profitability" /> }) },  reportWith('report-next-steps', 'Feedback report: your next steps (case results → drills on)', { comparison: COMPARISON, nextSteps: ready(SNAPSHOT) }),
+  // Pre-pilot audit S8 (Matt, 21 Nov): MECE structure and Case-specific structure both train on Spot the gap.
+  reportWith('report-next-steps-shared', 'Feedback report: two skills, one shared practice set (S8)', { comparison: null, nextSteps: ready({
+    ...SNAPSHOT, also: null, skills: [
+      { ...SNAPSHOT.skills[1], practice: { drill_id: 'PS-1', drill_name: 'Spot the gap', level: 1, minutes: 6 } },
+      { skill_id: 'PS.case_specific', name: 'Case-specific structure', why: 'Your framework could have fit any case.', quote: 'I’d look at the market, the company, the customers and the competition', prescription_id: '00000000-0000-4000-8000-0000000000b4', lesson: { minutes: 3 }, practice: null, covered_by: 'PS.mece' },
+      SNAPSHOT.skills[0],
+    ] }, { done: [], minutes: 23 }) }),
+  reportWith('report-next-steps-ready', 'Feedback report: every skill done, ready for the next case', { comparison: COMPARISON, nextSteps: ready({ ...SNAPSHOT, also: null }, { done: SNAPSHOT.skills.map(x => x.skill_id), ready: true }) }),
+  reportWith('report-next-steps-clear', 'Feedback report: nothing needs practice', { comparison: null, nextSteps: ready({ ...SNAPSHOT, skills: [], also: null, all_clear: true }, { done: [], ready: true, nextCase: { title: 'Quillpath SaaS Starter Plan Pricing', difficulty: 'Hard' } }) }),
+  reportWith('report-next-steps-partial', 'Feedback report: ended early, one skill, all cases taken', { comparison: null, nextSteps: ready({ ...SNAPSHOT, skills: [SNAPSHOT.skills[1]], also: null, partial: true }, { done: [], minutes: 13, nextCase: 'all_taken', strengths: [] }) }),
+  reportWith('report-next-steps-retake', 'Feedback report: a retake, compared with the last attempt', { comparison: { ...COMPARISON, kind: 'same_case', previousTitle: 'Hollis Bay Snacks New Product Launch' }, nextSteps: ready(SNAPSHOT, { done: [] }) }),
+  reportWith('report-next-steps-preparing', 'Feedback report: next steps being prepared', { comparison: COMPARISON, nextSteps: { state: 'preparing' } }),
+  reportWith('report-next-steps-failed', 'Feedback report: next steps failed, Try again', { comparison: null, nextSteps: { state: 'failed' } }),
+  reportWith('report-next-steps-demo', 'Feedback report: the 7-minute demo (no next steps)', { comparison: null, nextSteps: { state: 'demo' } }),
 ];

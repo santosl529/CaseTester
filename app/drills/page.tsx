@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { homeView } from '@/lib/drills/program/home';
 import { homeCheckin } from '@/lib/drills/feedback';
-import { loadUnfinishedInterview } from '@/lib/site/past-sessions';
+import { lastCaseEndedEarly, loadUnfinishedInterview } from '@/lib/site/past-sessions';
 import { TrainingHome } from '@/components/drills/views/training-home';
 
 // The training home (docs/prd-drills.md "Training home", "What the home
@@ -12,6 +12,8 @@ export default async function DrillsHomePage() {
   const home = await homeView(studentId);
   if (home.kind === 'onboarding') redirect('/drills/start');
   // "What would make this more useful?" after the first full case and week 1.
-  const [checkin, interview] = await Promise.all([homeCheckin(studentId), loadUnfinishedInterview(studentId)]);
-  return <TrainingHome home={home} checkin={checkin} interview={interview} />;
+  const [checkin, interview, caseEndedEarly] = await Promise.all([
+    homeCheckin(studentId), loadUnfinishedInterview(studentId), home.start_choice ? lastCaseEndedEarly(studentId) : false,
+  ]);
+  return <TrainingHome home={home} checkin={checkin} interview={interview} caseEndedEarly={caseEndedEarly} />;
 }

@@ -9,7 +9,7 @@ import type { RunCheckerFinding, RunPoint } from '@/lib/scoring/case-result-buil
 import type { CaseResultPayload } from '@/lib/drills/case-result';
 import { CaseTagReviewScreen, type ReviewRun } from '@/components/drills/views/case-tag-review';
 
-// The shadow review page (Matt, 15 Nov; local development only): every graded
+// The case-tag review page (Matt, 15 Nov; local development only): every graded
 // case's tags, findings and would-be prescriptions, with Matt's labels.
 const tagName = (id: string | null) => {
   if (!id) return 'No tag';

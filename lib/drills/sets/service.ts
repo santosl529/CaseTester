@@ -80,13 +80,23 @@ async function loadSet(studentId: string, setId: string): Promise<SetRow> {
   return set;
 }
 
-// "An unfinished set expires after 24 hours; completed attempts are kept."
+// "An unfinished set expires after 24 hours; completed attempts are kept." A set set aside is unfinished too: it
+// expires 24 hours after it started, like any other (Matt, 21 Nov).
 async function expireStale(studentId: string) {
   const cutoff = new Date(Date.now() - rules.sets.expire_after_hours * 3_600_000);
   const expired = await db.update(drillSets).set({ status: 'expired' })
-    .where(and(eq(drillSets.studentId, studentId), eq(drillSets.status, 'in_progress'), lt(drillSets.startedAt, cutoff)))
+    .where(and(eq(drillSets.studentId, studentId), inArray(drillSets.status, ['in_progress', 'set_aside']), lt(drillSets.startedAt, cutoff)))
     .returning({ id: drillSets.id, position: drillSets.currentPosition });
   for (const s of expired) await logDrillEvent(studentId, 'drill_set_expired', { set_id: s.id, items_completed: s.position });
+}
+
+// Sets set aside outside today's workout (which picks its own up), newest first: Today's Unfinished rows.
+export async function setAsideSets(studentId: string): Promise<{ set_id: string; drill_name: string; done: number; size: number }[]> {
+  await expireStale(studentId);
+  const rows = await db.select().from(drillSets)
+    .where(and(eq(drillSets.studentId, studentId), eq(drillSets.status, 'set_aside'), isNull(drillSets.workoutId)))
+    .orderBy(desc(drillSets.startedAt));
+  return rows.map(r => ({ set_id: r.id, drill_name: getDrill(r.drillId).name, done: r.currentPosition, size: r.size }));
 }
 
 export async function inProgressSet(studentId: string): Promise<SetRow | null> {
@@ -122,8 +132,18 @@ export const StartSetSchema = z.object({
   suggestion: z.object({ reason: z.string().transform(s => s.slice(0, 300)), source: z.enum(['weak', 'unfamiliar', 'review']) }).optional(),
   // Started from Your progress: a focus area's or a skill page's Practice button.
   dashboard: z.enum(['focus', 'detail']).optional(),
-}).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
-  'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
+  // Started from a case report's next steps (Matt, 15 Nov): logged with drill_set_started, so completing the set logs
+  // next_step_completed.
+  report: z.object({ case_attempt_id: z.uuid(), skill_id: z.string() }).optional(),
+  // Another set is unfinished (Matt, 21 Nov): the student chose "Start … instead", so that set is set aside (its
+  // answers kept) and this one starts. Its id, as the 409 named it.
+  set_aside: z.uuid().optional(),
+  // Resume a set the student set aside (Today's Unfinished row, the set's own page).
+  resume_set_id: z.uuid().optional(),
+  // Other weak spots this set covers (a case report's next steps, S8): a generated drill's items target them too.
+  also_skills: z.array(z.string()).max(3).optional(),
+}).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined || b.resume_set_id,
+  'skill_id, drill_id, prescription_id, workout_id, diagnostic_part or resume_set_id is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
   .refine(b => !b.quick_start || b.skill_id, 'quick_start needs skill_id');
 
@@ -144,6 +164,10 @@ interface SetChoice {
   diagnostic?: { id: string; part: number };
   // A quick check of a questionnaire placement (its score re-places the skill).
   check?: boolean;
+  // The set already attached to this workout block or diagnostic part, if any: starting the block again resumes it.
+  ownSetId?: string | null;
+  // Other skills the set covers (S8): from the workout block, or the report's next steps.
+  alsoSkills?: string[];
 }
 
 async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<SetChoice> {
@@ -156,6 +180,7 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
     return {
       drill, tier: DRILLS_CONFIG.programs.diagnostic.tier as Tier, source: 'diagnostic', prescriptionId: null,
       focusSkill: null, focusTag: null, kind: 'normal', size: part.size, diagnostic: { id: diag.id, part: input.diagnostic_part },
+      ownSetId: part.set_id ?? null,
     };
   }
   if (input.workout_id) {
@@ -173,7 +198,8 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
     return {
       drill, tier: block.tier as Tier, source: block.kind === 'review' ? 'review' : 'continue', prescriptionId: block.prescription_id,
       focusSkill: block.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? state?.tag ?? null), kind: block.kind, size: block.size,
-      workoutId: w.id, block: input.block, slot: block.slot, check: block.check === true,
+      workoutId: w.id, block: input.block, slot: block.slot, check: block.check === true, ownSetId: block.set_id ?? null,
+      alsoSkills: block.also_skills,
     };
   }
   if (input.quick_start) {
@@ -262,12 +288,84 @@ async function checkGradingLimits(studentId: string, needed: number, now = new D
   if (block) throw new DrillError(block.code, 429, block.message, { reopens_at: block.reopens_at });
 }
 
-export async function startSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<{ set_id: string }> {
+// ------------------------------------------------- one unfinished set at a time
+
+// Clicking a drill starts that drill (Matt, 21 Nov). While another set is unfinished the start is refused with what
+// the student needs to choose: that set (its drill, how far it got, whether today's workout or the diagnostic owns it)
+// and the drill this click would start. Resume opens the unfinished set; "Start … instead" sends the request again
+// with set_aside, which sets the unfinished set aside (answers kept, clock paused) and starts this one.
+export interface UnfinishedSet {
+  set_id: string; drill_name: string; done: number; size: number; workout: boolean; diagnostic: boolean;
+}
+export const unfinishedSet = (set: SetRow): UnfinishedSet => ({
+  set_id: set.id, drill_name: getDrill(set.drillId).name, done: set.currentPosition, size: set.size,
+  workout: set.workoutId !== null, diagnostic: set.source === 'diagnostic',
+});
+const IN_PROGRESS_MESSAGE = 'Finish or leave your current set first';
+const unfinishedError = (set: SetRow, wanted: string) =>
+  new DrillError('set_in_progress', 409, IN_PROGRESS_MESSAGE, { ...unfinishedSet(set), wanted: { drill_name: wanted } });
+
+// Sets the unfinished set aside, pausing its item clock as a pause would. False when it was no longer in progress
+// (finished or expired in another tab).
+async function setAside(studentId: string, set: SetRow, forDrill: string): Promise<boolean> {
+  const [row] = await db.update(drillSets).set({
+    status: 'set_aside',
+    pausedAt: sql`case when ${drillSets.currentServedAt} is not null and not ${drillSets.untimed} and ${drillSets.pausedAt} is null then now() else ${drillSets.pausedAt} end`,
+  }).where(and(eq(drillSets.id, set.id), eq(drillSets.studentId, studentId), eq(drillSets.status, 'in_progress'))).returning({ id: drillSets.id });
+  if (row) await logDrillEvent(studentId, 'drill_set_set_aside', { set_id: set.id, items_completed: set.currentPosition, for_drill_id: forDrill });
+  return Boolean(row);
+}
+
+// Brings a set-aside set back: in progress again (the one-set index still holds), its clock moved past the time away.
+async function bringBack(studentId: string, set: SetRow, wanted: string): Promise<{ set_id: string; resumed: true }> {
+  try {
+    const [row] = await db.update(drillSets).set({ status: 'in_progress' })
+      .where(and(eq(drillSets.id, set.id), eq(drillSets.studentId, studentId), eq(drillSets.status, 'set_aside'))).returning({ id: drillSets.id });
+    if (!row) return { set_id: set.id, resumed: true };   // already back, or expired: its page says which
+  } catch (e) {
+    const other = await inProgressSet(studentId);
+    if (other) throw unfinishedError(other, wanted);
+    throw e;
+  }
+  await resumePaused(set.id, studentId, 'set_aside');
+  await logDrillEvent(studentId, 'drill_set_resumed', { set_id: set.id, items_completed: set.currentPosition });
+  return { set_id: set.id, resumed: true };
+}
+
+// Resume a set-aside set by id (Today's Unfinished row, its own page).
+async function resumeSetById(studentId: string, setId: string, setAsideId: string | undefined) {
+  await expireStale(studentId);
+  const set = await loadSet(studentId, setId);
+  const name = getDrill(set.drillId).name;
+  if (set.status !== 'set_aside') return { set_id: set.id, resumed: true as const };
+  const existing = await inProgressSet(studentId);
+  if (existing && existing.id !== set.id) {
+    if (setAsideId !== existing.id) throw unfinishedError(existing, name);
+    await setAside(studentId, existing, set.drillId);
+  }
+  return bringBack(studentId, set, name);
+}
+
+export async function startSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<{ set_id: string; resumed?: true }> {
+  if (input.resume_set_id) return resumeSetById(studentId, input.resume_set_id, input.set_aside);
   const choice = await chooseSet(studentId, input);
   const { drill, tier, kind } = choice;
 
   const existing = await inProgressSet(studentId);
-  if (existing) throw new DrillError('set_in_progress', 409, 'Finish or leave your current set first', { set_id: existing.id });
+  const [own] = choice.ownSetId
+    ? await db.select().from(drillSets).where(and(eq(drillSets.id, choice.ownSetId), eq(drillSets.studentId, studentId), inArray(drillSets.status, ['in_progress', 'set_aside'])))
+    : [];
+  if (existing) {
+    // The click is for the unfinished set itself: its workout block or diagnostic part, or (from anywhere else) the
+    // same drill, unless that set is a diagnostic part (no feedback). Open it; nothing to choose.
+    const free = choice.workoutId === undefined && !choice.diagnostic && existing.source !== 'diagnostic';
+    if (existing.id === own?.id || (free && existing.drillId === drill.id)) return { set_id: existing.id, resumed: true };
+    if (input.set_aside !== existing.id) throw unfinishedError(existing, drill.name);
+    await setAside(studentId, existing, drill.id);
+  }
+  // A workout block or diagnostic part whose set was set aside picks it up where it left off.
+  if (own?.status === 'set_aside') return bringBack(studentId, own, drill.name);
+  if (own?.status === 'in_progress') return { set_id: own.id, resumed: true };
 
   const setId = randomUUID();
   // The student's last timer choices are the set's defaults; "No time limit"
@@ -281,7 +379,8 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   let plan: ItemRef[];
   if (drill.item_source === 'generated') {
-    plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag });
+    const also = (choice.alsoSkills ?? input.also_skills ?? []).filter(k => k !== choice.focusSkill && drill.skills.includes(k));
+    plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag, alsoSkills: also });
   } else {
     plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null, defend);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');
@@ -302,7 +401,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   } catch (e) {
     // Lost a race with another tab: the unique index allows one in-progress set.
     const other = await inProgressSet(studentId);
-    if (other) throw new DrillError('set_in_progress', 409, 'Finish or leave your current set first', { set_id: other.id });
+    if (other) throw unfinishedError(other, drill.name);
     throw e;
   }
   await logDrillEvent(studentId, 'drill_set_started', {
@@ -311,6 +410,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
     defend: plan.some(r => r.kind === 'authored' && r.defend), untimed, feedback_mode: feedbackMode,
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
+    report_case: input.report?.case_attempt_id ?? null, report_skill: input.report?.skill_id ?? null,
   });
   if (input.dashboard) {
     await logDrillEvent(studentId, 'dashboard_practice_clicked', { skill_id: choice.focusSkill ?? drill.primary_skills[0] ?? null, section: input.dashboard, set_id: setId });

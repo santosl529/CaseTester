@@ -7,7 +7,8 @@
 // ended, with "Get my report" (which ends it first: `endFirst`) when something
 // assessable happened.
 import 'server-only';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
+import { HOME_DEMO_CASE_IDS, LINK_ONLY_CASE_IDS } from '@/lib/cases/listed';
 import { db } from '@/db/client';
 import { scores, sessions, voiceSessionLines } from '@/db/schema';
 import { loadCases } from '@/lib/cases/loader';
@@ -98,6 +99,25 @@ export async function loadPastSessions(userId: string, timeZone?: string | null)
 }
 
 // Today's "interview in progress" card (M3): the latest interview that can still be continued.
+// The student's last full case (not the demo) ended with nothing to report: abandoned, or its time ran out with
+// nothing assessable — what Past sessions calls "Ended — no report". Today's starting-point choice then says "Your
+// case ended too early to place you." (Matt, 21–22 Nov).
+export function endedWithoutReport(r: Pick<PastSessionInput, 'status' | 'startedAt' | 'flags' | 'totalMs'>, now = new Date()): boolean {
+  if (r.status === 'abandoned' || r.status === 'terminated') return true;
+  if (r.status !== 'active') return false;
+  const clock = interviewClock(r.startedAt, r.flags, r.totalMs, now);
+  return clock.state === 'time_up' && !clock.report;
+}
+
+export async function lastCaseEndedEarly(userId: string, now = new Date()): Promise<boolean> {
+  const demo = [...new Set([...HOME_DEMO_CASE_IDS, ...LINK_ONLY_CASE_IDS])];
+  const [last] = await db.select({ caseId: sessions.caseId, status: sessions.status, startedAt: sessions.startedAt, flags: sessions.flagsJsonb })
+    .from(sessions).where(and(eq(sessions.userId, userId), notInArray(sessions.caseId, demo))).orderBy(desc(sessions.startedAt)).limit(1);
+  if (!last) return false;
+  const c = loadCases().find(x => x.id === last.caseId);
+  return endedWithoutReport({ ...last, totalMs: c ? caseTotalMs(c) : caseTotalMs({}) }, now);
+}
+
 export async function loadUnfinishedInterview(userId: string): Promise<{ caseTitle: string; status: string; href: string } | null> {
   const row = (await loadPastSessions(userId)).find(r => r.link?.label === 'Continue');
   return row ? { caseTitle: row.caseTitle, status: row.status, href: row.link!.href } : null;

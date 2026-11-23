@@ -8,7 +8,7 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
    - One AI call (Sonnet 5.5 with thinking) labels each "needs work" point with a skill from the drills list.
    - It reads the report and changes nothing in it: the ratings, quotes and report text are the same.
    - It runs after the score is stored and the response sent (Next's `after()`, as drill grading does), so the student's report doesn't wait for it. Only the pass that holds the scoring claim reaches it, so it's paid once per case: about $0.04, logged as `llm_usage` with component `skill_tags`.
-   - Work after the response still counts against the score route's 300 s, so the step's deadline is 285 s from the start of grading (`CASE_STEP_DEADLINE_MS` in `score-session.ts`). With under 45 s left it records a failure instead of starting (students see nothing in shadow mode), and it stops 5 s before its deadline. Over the last 60 cases grading took 159 s at the median, 190 s at the 90th percentile and 216 s at most. Until 16 Nov the deadline was the 240 s scoring budget, which skipped the step after any grading over 195 s (3 of those 60, and both live gradings in Claude's end-to-end test).
+   - Work after the response still counts against the score route's 300 s, so the step's deadline is 285 s from the start of grading (`CASE_STEP_DEADLINE_MS` in `score-session.ts`). With under 45 s left it records a failure instead of starting (the report then offers Try again), and it stops 5 s before its deadline. Over the last 60 cases grading took 159 s at the median, 190 s at the 90th percentile and 216 s at most. Until 16 Nov the deadline was the 240 s scoring budget, which skipped the step after any grading over 195 s (3 of those 60, and both live gradings in Claude's end-to-end test).
    - Gathering its input is guarded on its own: if that ever threw, the case gets no case result and the report is unaffected.
    - Off by default (`CASE_TO_DRILLS` unset). Never on a dry run (regrade, replay), never for the 7-minute demo.
    - If it fails, the report still saves.
@@ -58,6 +58,50 @@ Matt's fixes from the pre-pilot audit, on this branch so they ship with shadow m
 
 **Vercel settings these need** (Production): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (from Matt's Sentry project) and `REPORTS_ALLOWED_EMAILS` (the founders' emails). From the audit's blocker (B1, not code): `RATE_LIMIT_SIGN_UPS_PER_HOUR` (for example 200) and `RATE_LIMIT_CLUB_CODES_PER_HOUR` (for example 100), so a club signing up together on one Wi-Fi isn't locked out.
 
+## Drills-Update (Matt, 21 Nov 2026): what changes in the case product
+
+Branch `Drills-Update`, cut from main bfff0622, with `drill-update` (steps 3–6, items 7–11 below) merged in at Matt's word. Pushed, not merged. The AI interviewer, the scoring passes and the voice agent are untouched. Diff: `git diff main...Drills-Update`.
+
+- **Steps 3–6 of case results → drills** (items 7–11 under "On `drill-update` only" below): the report's "Since your last [level] case" and "Your next steps" sections (only when `CASE_TO_DRILLS=on`), the Try again route, Your progress's case data, and the one-time backfill (not needed: no real student has a graded full case yet).
+- **S7, the report** (`components/views/report.tsx`, `components/case-next-steps.tsx`): a "Your next steps ↓" link under Top improvement that jumps to the section (now `id="your-next-steps"`). Shown only where the section shows (so only when on), not on the 7-minute demo.
+- **S8, the report's next steps** (`components/case-next-steps.tsx`, `lib/drills/next-steps.ts`, `lib/drills/progress/next-steps-store.ts`): when two listed skills would practice the same drill at the same level, the second has no Start practice of its own; a "Practice with the set above ↑" button jumps to the first one's card and outlines it (Matt, 22 Nov), and that set covers both. Drills data only; the report's ratings and text are unchanged. Workouts do the same (drills only).
+- **Drill starts** (drills only, no case-product change): clicking a drill now starts that drill, with a choice when another set is unfinished (Resume, or start the clicked one instead).
+- **Database: migration 0030** (`db/migrations/0030_set_aside.sql`), additive: one new value, `set_aside`, on the drills enum `drill_set_status`. **Applied to the shared database on 21 Nov** (Matt's go), after checking 0030 was free on main and every branch. No case table changes. Today's production code never writes or reads the new value.
+- **A case as the starting point** (Matt, 22 Nov; drills, plus one read-only site helper). Today's "How do you want to find your starting point?" offers quick questions, the quick quiz or a case interview (Brew & Bean); **Start the case** opens Cases at `/home?case=prof-001#cases` (Recommended), so the voice or text choice, consent and the case limits are unchanged. New read-only `lastCaseEndedEarly` / `endedWithoutReport` in `lib/site/past-sessions.ts` (by Past sessions' own rule) for "Your case ended too early to place you." New read-only `caseMinutes` in `lib/cases/listed.ts` (the same length Cases shows), for the card's "about 20 min, then a feedback report." Between a case ending and its result reaching drills, Today shows "We're building your plan from your case…" (drills reads `sessions` for the case's end time, read-only). Drills now decides a retake by its own rule for a set-aside starting-point case (it reads `sessions`, as before). No change to the interviewer, scoring or the voice agent; no migration.
+- **Voice agent: no redeploy needed.** Of everything this branch changes, the agent's code (`scripts/voice-agent.ts`, `lib/voice/livekit-agent.ts` and what they import) shares only `db/schema.ts`, and only for the new drills enum value, which it never reads.
+
+### Switching case results on, in order (merge only with Matt's and Lorenzo's go)
+
+No shadow review period: Matt dropped it and its 20-report requirement on 21 Nov. Case results go on for students when this branch ships. The switch stays, so it can be turned off in an emergency.
+
+1. **Review** this section and the diff.
+2. **Migration 0030: done** (21 Nov).
+3. **Merge `Drills-Update` into main** and run the boot check (`docs/voice-deploy.md`, site only) with `CASE_TO_DRILLS=on`. Expect the `[engine]` line, then `[boot] CASE_TO_DRILLS=on; drill groups: structure, quantitative, creativity, synthesis, communication, pushback, topFix`, and `GET /` 200.
+4. **Deploy** (push main). The site still runs in shadow until step 5.
+5. **After the merge and deploy, in Vercel's Production environment: change `CASE_TO_DRILLS` from `shadow` to `on`, then redeploy** (a variable change only applies to a new deployment). Leave `CASE_TAG_DRILL_GROUPS` unset.
+6. **No voice-agent redeploy** (see above).
+7. **Check:** Vercel's runtime log shows `[boot] CASE_TO_DRILLS=on; …`. After the first full case graded, it shows `[score] case → drills (on): applied` (on a failure, `failed — <reason>`, and the report is unaffected; the report then offers Try again). `scripts/case-tagging/shadow-status.ts` (free, read-only; the name is historical) lists the runs by mode and status.
+
+**To turn it off in an emergency:** set `CASE_TO_DRILLS=off` (grading sends drills nothing; reports show no next steps) or `shadow` (tagged and stored, nothing shown), and redeploy. No code change. Case results already sent to drills stay there.
+
+## Pilot dashboard (Matt, 22 Nov 2026): what changes in the case product
+
+Branch `pilot-dashboard`, cut from `Drills-Update` (merge Drills-Update first). Pushed, not merged. `/drills/reports` becomes one weekly page for you and Matt (the same `REPORTS_ALLOWED_EMAILS` check; everyone else a 404); the earlier page is its Details tab. The interviewer, scoring and the voice agent are untouched; no migration. Case-product files it touches, each only to record an event (never failing the request):
+
+- **Sign-up** (`app/api/sign-up/route.ts`, `lib/site/sign-up.ts` now returns the new account's id): `signed_up` with the club and the visitor's anonymous daily code.
+- **Log-in** (`components/sign-in-flow.tsx`): after a successful log-in the form sends a beacon to the new `POST /api/auth/logged-in` (`logged_in`, the signed-in account only).
+- **Page views**: a small beacon in the root layout (`components/monitoring/page-views.tsx`, `app/layout.tsx`) on every page, to the new `POST /api/pv` (`lib/site/page-view.ts`): the cleaned path, and the account id or, logged out, a daily anonymous code (a hash of the day, IP address, browser and a server secret; the address isn't stored). No cookie, no browser storage; bots skipped; a new rate limit `pageView` (600 an hour per address).
+- **Report page** (`app/case/[sessionId]/report/page.tsx`): the owner's first view of a graded report is logged (`report_viewed`, after the page is sent).
+- **Case start** (`app/api/session/route.ts`): `case_limit_hit` (reason, limit) when a limit refuses a case.
+- **Voice**: the token route logs `voice_session_started`, and `voice_connect_failed` (busy) when the room cap refuses; the voice page (`components/voice-room.tsx`) sends a beacon to the new `POST /api/voice/[id]/failed` when the microphone is blocked, the audio can't connect, the interviewer never comes, or the connection drops. Nothing about the call itself changes.
+- **Wrong club codes** (`lib/club-alert.ts`): each one is also recorded (`club_code_rejected`, no code text).
+- **Privacy Policy**: Matt's line on page visits, and "Last updated" November 22, 2026 — **set it to the deploy date**.
+- **A new colour token** `--caution` (amber), used only on the founders' page.
+- **DRILL / LESSON labels** (Matt, 22 Nov): the report's next steps show a small DRILL pill before each practice set's name (as every drills page now does).
+- **The report's skill areas start collapsed** (Matt, 22 Nov; `components/report-card.tsx`, `components/views/report.tsx`): each card shows the skill area and its grade with "Show feedback", and opens to the same feedback as before. A line above the list: "Select a skill area to see your detailed feedback." UI only; the content and the PDF are unchanged. The report also ends with a **Back to Today** button (to `/drills`).
+
+**Vercel settings (Production):** optionally `PAGE_VIEW_SECRET` (any long random value; unset, one is derived from the Supabase secret key). The Sentry token already there is read for weekly error counts (it needs `org:read`; without it the page shows "—"). Nothing else.
+
 ## Done 19 Nov 2026
 
 All of the steps below are done: merged (65b904b0, main 68034c15) and deployed; Vercel settings in (Sentry's four, `REPORTS_ALLOWED_EMAILS`, the rate limits, `CASE_TO_DRILLS=shadow`); LiveKit agent `9YxUohCHkfqg`; the reason rewrite applied (2 rows); Sentry project `casepace/casepace-web` with its alerts, test error received, IP storage off. `scripts/sentry-setup.ts` can no longer create alerts (Sentry retired that API; they were made with the Sentry CLI); `--check` still works. Details: technical PRD §16, 19 Nov.
@@ -78,11 +122,15 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 ## Knowing it works
 
 - After each graded case, Vercel's runtime log shows `[score] case → drills (shadow): shadow`. On a failure it shows `failed — <reason>`, and the report is unaffected.
-- `npx tsx --conditions=react-server --env-file=.env.local scripts/case-tagging/shadow-status.ts` is free and read-only. It shows runs by status, the latest, failures with reasons, cost per case, how many reports Matt has labeled, and graded cases with no run.
-- The shadow review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
+- `npx tsx --conditions=react-server --env-file=.env.local scripts/case-tagging/shadow-status.ts` is free and read-only. It shows runs by status, the latest, failures with reasons, cost per case, how many reports Matt has labeled (for the exhibits and judgment gates; no 20-report target since 21 Nov), and graded cases with no run.
+- The case-tag review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
 - Students see nothing: the report is unchanged, no `case_results` row is written in shadow mode, and drills doesn't change.
 
-## Still to come (later steps; listed when built)
+## On `drill-update` only (not in `case-drills-shadow`; for a later merge)
 
-- The report page gets two sections: a comparison with the last case at the same level, after Top improvement, and "Your next steps" before the survey and the transcript. Both read only.
-- A one-time backfill script copying the ratings of past completed cases into `case_results`. It reads `sessions` and `scores`, writes only drills tables, and runs only with Lorenzo's go.
+7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today. The 7-minute demo's report shows one line instead, "Take a full case to get your next steps." with a link to Cases; a report graded before the switch went on shows the comparison (from stored ratings) but no next steps.
+8. **A Try again route** (`POST /api/case/[sessionId]/next-steps`, the owner only): when the tagging step failed, it re-runs only that step on what scoring stored (`storedCaseResultInput` in `score-session.ts`, read-only, no grading call), at most once per failure.
+9. Today's quick fix, Learn's For you and the prescription reasons change wording (drills only).
+
+10. **Your progress** (drills): the `case_sessions` stopgap (which read `sessions` and `scores` directly for the dashboard) is removed; case data shows only when `CASE_TO_DRILLS=on`. A Case to case card reads `sessions` and `scores` read-only, as the report's comparison does.
+11. **A one-time backfill** (`scripts/drills-backfill-case-results.ts`, only with Lorenzo's go, after 0029): copies the ratings of past completed cases into `case_results`, marked `backfilled`, with no findings and no changes to skills or prescriptions. It reads `sessions` and `scores` and writes only `case_results`. The demo and the two test accounts are skipped by default. The dry run on 16 Nov found nothing to copy for real students: every non-test session so far is the 7-minute demo. With the test accounts included it would copy 304 cases (299 retakes).

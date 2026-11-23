@@ -2,16 +2,20 @@ import Link from 'next/link';
 import { getDrill } from '@/lib/drills/config';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
+import { unfinishedLine } from '@/lib/drills/unfinished-text';
 import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';
 import { caseResultsWired } from '@/lib/drills/case-to-drills';
+import { BUILDING_PLAN, START_CHOICE } from '@/lib/drills/program/start-choice-text';
+import { RefreshWhile } from '@/components/drills/refresh-while';
 import { AppPage } from '@/components/brand/page';
 import { StepDot } from '@/components/brand/progress';
 import { ArrowLink } from '@/components/brand/links';
 import { WeekCount } from '@/components/drills/week-count';
-import { focusLine, lowerFirst, mistakeLine, scoreLine, todaySections } from '@/lib/drills/today-page';
+import { focusLine, lowerFirst, scoreLine, todaySections } from '@/lib/drills/today-page';
 import { HowItWorks } from '@/components/drills/how-it-works';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
@@ -40,7 +44,14 @@ function Title({ label, title }: { label: [string, string | null]; title: string
 export type UnfinishedInterview = { caseTitle: string; status: string; href: string };
 export const INTERVIEW_IN_PROGRESS = 'Interview in progress';
 
-export function TrainingHome({ home, checkin, interview = null }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null }) {
+// A card title's time ("2–3 min", "about 20 min") never breaks across lines.
+function keepTimeTogether(title: string) {
+  const m = /(about )?\d+(–\d+)? min/.exec(title);
+  if (!m) return title;
+  return <>{title.slice(0, m.index)}<span className="whitespace-nowrap">{m[0]}</span>{title.slice(m.index + m[0].length)}</>;
+}
+
+export function TrainingHome({ home, checkin, interview = null, caseEndedEarly = false }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null; caseEndedEarly?: boolean }) {
   const interviewCard = interview && (
     <section aria-labelledby="interview" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
       <div className="min-w-0 space-y-0.5">
@@ -57,6 +68,17 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       <Link href={`/drills/sets/${home.resume.set_id}`} className="link">Resume it</Link>
     </p>
   );
+  // Sets set aside for another drill (Matt, 21 Nov): "Unfinished: Mental math · 2 of 6 done · Resume".
+  const unfinished = home.unfinished.length > 0 && (
+    <ul aria-label="Unfinished sets" className="space-y-2">
+      {home.unfinished.map(u => (
+        <li key={u.set_id} className="t-small flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-panel bg-sky/60 px-5 py-3">
+          <span className="tabular-nums">Unfinished: <KindTag kind="drill" /><span className="font-semibold">{unfinishedLine(u)}</span></span>
+          <StartSetButton body={{ resume_set_id: u.set_id }} label="Resume" name={`Resume ${u.drill_name}`} size="sm" variant="outline" />
+        </li>
+      ))}
+    </ul>
+  );
   const d = home.diagnostic;
   const diagnosticCard = (lead: string) => (d.status === 'completed' ? null : (
     <section aria-labelledby="diag" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
@@ -68,30 +90,45 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
   const self = home.kind === 'self_directed';
   // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
   // Two while a case result can't make a plan (CASE_TO_DRILLS=on).
+  // No plan source yet (Matt, 22 Nov): three equal options — quick questions, the quick quiz, a case interview (Brew &
+  // Bean; only while case results reach drills). On a phone they stack in that order. Text: start-choice-text.ts.
+  const choice = home.start_choice;
+  const card = (title: string, body: string, action: React.ReactNode, extra?: React.ReactNode) => (
+    <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
+      <span className="space-y-1"><span className="t-body block font-semibold">{keepTimeTogether(title)}</span><span className="block text-ink/70">{body}</span>{extra}</span>
+      {action}
+    </li>
+  );
   const getPlan = !home.plan.source && (
     <section aria-labelledby="get-plan" className="space-y-4">
-      <h2 id="get-plan" className="t-heading font-semibold">{self ? 'Find your starting point' : 'Get your plan'}</h2>
-      <p className="t-small">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
-      <ul className={`grid gap-3 ${caseResultsWired() ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
-        <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-          <span><span className="t-body block font-semibold">Answer a few questions</span><span className="text-ink/70">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
-          <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
-        </li>
-        <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-          <span><span className="t-body block font-semibold">Take the diagnostic</span><span className="text-ink/70">About 15 minutes of short questions. More accurate.</span></span>
-          <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
-        </li>
-        {caseResultsWired() && (
-          <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-            <span><span className="t-body block font-semibold">Take a full case</span><span className="text-ink/70">About 35 minutes. The most accurate.</span></span>
-            <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
-          </li>
-        )}
+      <h2 id="get-plan" className="t-heading font-semibold">{START_CHOICE.heading}</h2>
+      {caseEndedEarly && <p className="t-small rounded-panel bg-sky/60 px-4 py-3">{START_CHOICE.endedEarly}</p>}
+      <p className="t-small">{START_CHOICE.lead}</p>
+      <ul className={`grid gap-3 ${choice?.case ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+        {card(START_CHOICE.questions.title, self ? START_CHOICE.selfQuestionsBody : START_CHOICE.questions.body,
+          <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.questions.button}</Link>)}
+        {card(START_CHOICE.quiz.title, self ? START_CHOICE.selfQuizBody : START_CHOICE.quiz.body,
+          <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : START_CHOICE.quiz.button}</Link>)}
+        {choice?.case && card(START_CHOICE.case.title(choice.case.minutes), START_CHOICE.case.body,
+          choice.case.blocked
+            ? <span className={buttonVariants({ size: 'sm', variant: 'outline' }) + ' pointer-events-none opacity-50'} aria-disabled="true" role="link">{START_CHOICE.case.button}</span>
+            : <Link href={choice.case.href} className={buttonVariants({ size: 'sm', variant: 'outline' })}>{START_CHOICE.case.button}</Link>,
+          choice.case.blocked
+            ? <span role="status" className="block font-semibold text-ink">{choice.case.blocked}</span>
+            : choice.case.uses && <span className="block text-ink/70">{choice.case.uses}</span>)}
       </ul>
     </section>
   );
   // A new plan the student hasn't opened yet.
-  const planReady = home.plan.source && !home.plan.seen && (
+  // A case just ended and its placements haven't arrived (Matt, 22 Nov): this instead of a default workout.
+  const building = home.building_plan && (
+    <section aria-labelledby="building-plan" className="space-y-2 rounded-panel bg-sky/60 p-5 sm:p-6">
+      <h2 id="building-plan" className="t-heading font-semibold">Today&apos;s workout</h2>
+      <p role="status" className="t-body">{BUILDING_PLAN}</p>
+      <RefreshWhile />
+    </section>
+  );
+  const planReady = !home.building_plan && home.plan.source && !home.plan.seen && (
     <section aria-labelledby="plan-ready" className="space-y-3 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
       <h2 id="plan-ready" className="t-heading font-semibold">{self ? 'Your starting point is ready' : 'Your plan is ready'}</h2>
       <p className="t-small">Built from {SOURCE[home.plan.source]}. {self ? 'See where you start and what to practice first.' : "See this week's focus, your schedule and your first workout."}</p>
@@ -104,9 +141,10 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
   const w = home.weakest;
   const quickFix = (already: boolean, H: 'h2' | 'h3' = 'h2') => w && !already && (
     <section aria-labelledby="quick-fix" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-      <H id="quick-fix" className="t-label font-semibold text-ink/70">Quick fix</H>
-      <p className="t-body"><span className="font-semibold">{w.skill_name}</span> · {mistakeLine(w)}</p>
-      {w.evidence && <p className="t-small text-ink/70">Last time you said: “{w.evidence}”</p>}
+      <H id="quick-fix" className="t-label font-semibold text-ink/70">Bonus Quick Fix</H>
+      {/* The top skill in the shared ranking, with its prescription's own reason (Matt, 15 Nov, D7). */}
+      <p className="t-body font-semibold">{w.skill_name}</p>
+      <p className="t-small text-ink/70">{w.reason}</p>
       {w.skill_id && w.practice_minutes !== null && (
         <StartSetButton body={{ skill_id: w.skill_id, quick_start: true }} label={`Practice ${lowerFirst(w.skill_name)} · ${w.practice_minutes} min`} variant="outline" />
       )}
@@ -127,13 +165,14 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
         {interviewCard}
         {home.first_week && <HowItWorks />}
         {resume}
+        {unfinished}
         {getPlan}
         {planReady}
         {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
         {home.suggested && (
           <section aria-labelledby="suggested" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
             <h2 id="suggested" className="t-heading font-semibold">Suggested next</h2>
-            <p className="t-small"><span className="font-semibold">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
+            <p className="t-small"><span className="font-semibold">{home.suggested.skill_name}</span> · <KindTag kind="drill" />{home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
             <p className="t-small text-ink/70">{home.suggested.reason}</p>
             <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, placement_check: home.suggested.check || undefined, suggestion: { reason: home.suggested.reason, source: home.suggested.slot } }} label="Start" />
           </section>
@@ -200,6 +239,17 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
   // its extras once done, the quick fix, this week, the next case, a fresh
   // diagnostic, and the feedback question folded at the end.
   const planFirst = Boolean(getPlan || planReady);
+  // Each set not done can be started on its own (Matt, 22 Nov: "suggest what to do next, but always give a choice"):
+  // the Cobalt ring and the main button still suggest the next one. In progress: Resume; on Foundations, a skill's
+  // unread lesson (or the intro) comes first, as with the main button.
+  const blockStart = (b: NonNullable<typeof workout>['blocks'][number], i: number) => {
+    if (!workout || (b.status !== 'todo' && b.status !== 'in_progress')) return null;
+    const name = getDrill(b.drill_id).name;
+    if (b.status === 'in_progress') return <StartSetButton body={{ workout_id: workout.id, block: i }} label="Resume" name={`Resume ${name}`} size="sm" variant="outline" />;
+    if (home.intro_first) return <Link href="/drills/learn/intro?source=auto" aria-label={`Start ${name}`} className={buttonVariants({ size: 'sm', variant: 'outline' })}>Start</Link>;
+    if (home.lesson_first_blocks.includes(i)) return <Link href={`/drills/learn/${encodeURIComponent(b.skill_id)}?source=auto&workout=${workout.id}&block=${i}`} aria-label={`Start ${name}`} className={buttonVariants({ size: 'sm', variant: 'outline' })}>Start</Link>;
+    return <StartSetButton body={{ workout_id: workout.id, block: i }} label="Start" name={`Start ${name}`} size="sm" variant="outline" />;
+  };
   const workoutCard = workout && workout.blocks.length > 0 && (
     <section aria-labelledby="workout" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -213,8 +263,11 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
             <StepDot state={b.status === 'done' ? 'done' : i === next ? 'current' : 'todo'} className="mt-0.5" />
             <div className="min-w-0 flex-1 space-y-0.5">
               <p className="flex flex-wrap items-baseline justify-between gap-2">
-                <span><span className="text-ink/70">{SLOT[b.slot]} · </span><span className="font-semibold">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
-                <span className="text-ink/70 tabular-nums">{b.status === 'done' ? (b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done') : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
+                <span><span className="text-ink/70">{SLOT[b.slot]} · </span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
+                <span className="flex items-center gap-3">
+                  <span className="text-ink/70 tabular-nums">{b.status === 'done' ? (b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done') : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
+                  {blockStart(b, i)}
+                </span>
               </p>
               <p className="text-ink/70">{b.reason}</p>
             </div>
@@ -230,7 +283,8 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
             : home.lesson_first
             ? <Link href={`/drills/learn/${encodeURIComponent(workout.blocks[next].skill_id)}?source=auto&workout=${workout.id}&block=${next}`} className={buttonVariants({ size: 'lg' })}>{started ? 'Continue workout' : "Start today's workout"}</Link>
             : <StartSetButton body={{ workout_id: workout.id, block: next }} label={started ? 'Continue workout' : "Start today's workout"} size="lg" />
-          : workout.blocks[next].set_id && <Link href={`/drills/sets/${workout.blocks[next].set_id}`} className={buttonVariants({ size: 'lg' })}>Continue workout</Link>}
+          // Its set is in progress or set aside: the start resumes it (or asks, if another set is unfinished).
+          : workout.blocks[next].set_id && <StartSetButton body={{ workout_id: workout.id, block: next }} label="Continue workout" size="lg" />}
     </section>
   );
   // Once the workout is finished (Matt, 13 Nov): a short done card, and the
@@ -242,7 +296,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       <ul className="t-small space-y-1.5">
         {workout.blocks.map((b, i) => (
           <li key={i} className="flex flex-wrap items-baseline justify-between gap-x-3">
-            <span className="font-semibold">{getDrill(b.drill_id).name}</span>
+            <span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span></span>
             <span className="text-ink/70 tabular-nums">{b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done'}</span>
           </li>
         ))}
@@ -256,7 +310,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       <ul className="space-y-2">
         {home.extra.map((b, i) => (
           <li key={i} className="flex flex-wrap items-center justify-between gap-2 t-small">
-            <span><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason} · {Math.max(1, Math.round(b.minutes))} min</span></span>
+            <span><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason} · {Math.max(1, Math.round(b.minutes))} min</span></span>
             <StartSetButton size="sm" variant="outline" label={`Start ${getDrill(b.drill_id).name}`}
               body={b.check ? { skill_id: b.skill_id, quick_start: true, placement_check: true, browse: true } : { drill_id: b.drill_id, skill_id: b.skill_id, tier: b.tier, browse: true }} />
           </li>
@@ -272,7 +326,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       {layout.optional.map(item => item === 'resume' && home.resume ? (
         <section key={item} aria-labelledby="resume-set" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
           <div className="space-y-0.5">
-            <h3 id="resume-set" className="t-card font-semibold">{home.resume.drill_name}</h3>
+            <h3 id="resume-set" className="t-card font-semibold"><KindTag kind="drill" />{home.resume.drill_name}</h3>
             <p className="t-small text-ink/70">In progress</p>
           </div>
           <Link href={`/drills/sets/${home.resume.set_id}`} className={buttonVariants({ variant: 'outline' })}>Resume</Link>
@@ -291,14 +345,16 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       {interviewCard}
       {home.first_week && <HowItWorks />}
       {layout.resumeTop && resume}
+      {unfinished}
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-          <h2 id="start-here" className="t-heading font-semibold">Start here: how a case interview works</h2>
+          <h2 id="start-here" className="t-heading font-semibold"><KindTag kind="lesson" />Start here: how a case interview works</h2>
           <p className="t-small">A short lesson on the four stages of a case, what interviewers look for in each, and the skills your plan trains for each one. Read it before your first workout.</p>
           <Link href="/drills/learn/intro?source=auto" className={buttonVariants({ size: 'lg' })}>Read it now</Link>
         </section>
       )}
       {getPlan}
+      {building}
       {planReady}
       {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
       {!planFirst && workout && workout.blocks.length === 0 && (
@@ -312,7 +368,7 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
         </section>
       )}
       {!planFirst && (workoutDone ? doneCard : workoutCard)}
-      {workoutDone ? optional : quickFix(!fixShown)}
+      {workoutDone ? optional : !home.building_plan && quickFix(!fixShown)}
       {ws && (ws.workouts.target > 0 || ws.cases.target > 0 || ws.milestone_skills.length > 0) && (
         <section aria-labelledby="week" className="space-y-3">
           <h2 id="week" className="t-heading font-semibold">This week</h2>
@@ -331,9 +387,10 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
       )}
       {home.next_case && (
         <section aria-labelledby="case" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-          <h2 id="case" className="t-heading font-semibold">{home.next_case.retake ? 'Take the case again' : 'Next case'}</h2>
-          <p className="t-small">{home.next_case.title}{home.next_case.retake && ': you have taken every case we have; another run shows what has changed.'}</p>
-          <Link href={`/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}`} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
+          <h2 id="case" className="t-heading font-semibold">Next case</h2>
+          {/* Never a retake by default (Matt, 15 Nov): with every case taken, the student chooses one. */}
+          <p className="t-small">{home.next_case.case_id ? home.next_case.title : 'You’ve taken every case. Retake one?'}</p>
+          <Link href={home.next_case.case_id ? `/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}` : '/home#cases'} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
         </section>
       )}
       {home.rediagnose && (

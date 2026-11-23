@@ -26,21 +26,26 @@ describe('who may open the reports', () => {
 });
 
 // The page itself: the check runs on the server, before anything is read.
-const page = vi.hoisted(() => ({ email: null as string | null, loads: 0 }));
+const page = vi.hoisted(() => ({ email: null as string | null, loads: 0, weekly: 0 }));
 vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NEXT_NOT_FOUND'); }, redirect: () => { throw new Error('redirect'); } }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: page.email ? { email: page.email } : null } }) } }) }));
 vi.mock('@/lib/drills/reports', () => ({ buildReports: async () => { page.loads++; return {}; }, listOrgs: async () => [], TEST_ORGS: ['smoke-test'] }));
 vi.mock('@/lib/drills/reports/feedback', () => ({ FEED_TYPES: {}, feedbackReports: () => ({}), loadFeedback: async () => ({}) }));
 vi.mock('@/lib/drills/reports/case-side-load', () => ({ loadCaseSide: async () => ({ students: [], sessions: [], ratings: [], comments: [], firsts: [] }) }));
 vi.mock('@/components/drills/views/pilot-reports', () => ({ PilotReports: () => null }));
+// The weekly overview (the pilot dashboard, 22 Nov) is the default view; ?tab=details is the earlier page.
+vi.mock('@/lib/drills/reports/weekly-load', () => ({ buildWeeklyDashboard: async () => { page.weekly++; return {}; } }));
+vi.mock('@/components/drills/views/pilot-dashboard', () => ({ PilotDashboard: () => null }));
 
 describe('/drills/reports in production', () => {
-  beforeEach(() => { page.loads = 0; vi.stubEnv('NODE_ENV', 'production'); vi.stubEnv('REPORTS_ALLOWED_EMAILS', 'matt@example.com'); });
-  const open = async () => (await import('@/app/drills/reports/page')).default({ searchParams: Promise.resolve({}) });
+  beforeEach(() => { page.loads = 0; page.weekly = 0; vi.stubEnv('NODE_ENV', 'production'); vi.stubEnv('REPORTS_ALLOWED_EMAILS', 'matt@example.com'); });
+  const open = async (q: Record<string, string> = {}) => (await import('@/app/drills/reports/page')).default({ searchParams: Promise.resolve(q) });
   it('a student who isn\'t listed: 404, nothing read', async () => {
     page.email = 'student@example.com';
     await expect(open()).rejects.toThrow('NEXT_NOT_FOUND');
+    await expect(open({ tab: 'details' })).rejects.toThrow('NEXT_NOT_FOUND');
     expect(page.loads).toBe(0);
+    expect(page.weekly).toBe(0);
   });
   it('signed out: 404', async () => {
     page.email = null;
@@ -50,6 +55,8 @@ describe('/drills/reports in production', () => {
     page.email = 'matt@example.com';
     // With NODE_ENV stubbed to production React's dev JSX runtime can't render here; what matters is the gate.
     await open().catch(e => { expect(String(e)).not.toMatch(/NEXT_NOT_FOUND/); });
+    expect(page.weekly).toBe(1);
+    await open({ tab: 'details' }).catch(e => { expect(String(e)).not.toMatch(/NEXT_NOT_FOUND/); });
     expect(page.loads).toBe(1);
   });
 });

@@ -39,8 +39,10 @@ export function dedupeFindings(findings: Finding[]): Finding[] {
 const skillOf = (tag: string) => getMistakeTag(tag)!.skill;
 
 // `retake`: the student has finished this case before. A retake can log
-// findings and drop a skill, but can't validate one: the student may
-// remember the case (Matt, 2026-10-11).
+// findings and make a review due, but can't validate a skill or count as the
+// second case of a repeat: the student may remember the case (Matt,
+// 2026-10-11; 15 Nov). `previous`: the last earlier case that was neither a
+// retake nor ended early.
 export function applyCase(before: ProgressMap, payload: CaseResultPayload, previous: CaseResultPayload | null, ctx: Context, retake = false): CaseUpdate {
   const isLive = ctx.isLive ?? undefined;
   const progress: ProgressMap = new Map([...before].map(([k, v]) => [k, { ...v }]));
@@ -61,29 +63,55 @@ export function applyCase(before: ProgressMap, payload: CaseResultPayload, previ
   for (const f of findings) flagged.set(skillOf(f.tag), [...(flagged.get(skillOf(f.tag)) ?? []), f]);
   const stateBefore = (id: string) => before.get(id)?.state ?? 'not_started';
 
-  // A finding on a Practiced, Mastered or Validated skill drops it to Recognizes.
+  // Case skill states (Matt, 15 Nov, D3; docs/prd-drills.md "Updating skill state from cases"). "Twice in a row":
+  // the skill was also flagged in the previous case that was neither a retake nor ended early (`previous` is that
+  // case), and this case is neither either.
+  const previouslyFlagged = new Set((previous?.findings ?? []).map(f => skillOf(f.tag)));
+  const countsAsRepeat = !retake && !payload.partial;
   const regressions: string[] = [];
-  for (const id of flagged.keys()) {
+  const DAY = 86_400_000;
+  const reviewDays = DRILLS_CONFIG.rules.spaced_review.eligible_after_days;
+  const transferRetry = DRILLS_CONFIG.rules.transfer.retry_after_days;
+  for (const [id, fs] of flagged) {
     const s = stateBefore(id);
-    if (s === 'practiced' || s === 'mastered' || s === 'validated') {
-      if (s !== 'practiced') regressions.push(id);
-      move(id, 'recognizes', `case ${payload.case_id} flagged ${flagged.get(id)!.map(f => f.tag).join(', ')}`);
-      const p = get(id);
+    if (s !== 'practiced' && s !== 'mastered' && s !== 'validated') continue;
+    if (s !== 'practiced') regressions.push(id);
+    const tags = fs.map(f => f.tag).join(', ');
+    const repeat = countsAsRepeat && previouslyFlagged.has(id);
+    const p = get(id);
+    if (s === 'practiced' && repeat) {
+      // Down to Recognizes, as a failed transfer check: Repair (or Construct) next.
+      move(id, 'recognizes', `case ${payload.case_id} flagged ${tags} again`);
       const drills = DRILLS_CONFIG.rules.skill_drills[id];
       p.stage = drills?.repair ? 'repair' : drills?.l2 ? 'construct' : 'recognize';
       p.l1_streak = 0; p.l2_streak = 0; p.repair_sets = 0;
       p.transfer_due_at = null; p.next_review_at = null;
+    } else if (s === 'practiced') {
+      // Stays Practiced; the transfer check waits 2 more days.
+      const later = new Date(ctx.now.getTime() + transferRetry * DAY);
+      p.transfer_due_at = p.transfer_due_at && p.transfer_due_at > later ? p.transfer_due_at : later;
+    } else if (repeat) {
+      // Mastered or Validated, flagged twice in a row: one step down, its transfer check due now.
+      move(id, 'practiced', `case ${payload.case_id} flagged ${tags} again`);
+      p.transfer_due_at = ctx.now; p.next_review_at = null;
+    } else {
+      // Once: a review comes due now; a Validated skill steps back to Mastered.
+      if (s === 'validated') move(id, 'mastered', `case ${payload.case_id} flagged ${tags}`);
+      p.next_review_at = ctx.now;
     }
   }
-  // A Mastered skill observed with no findings becomes Validated (not on a retake).
+  // A Mastered skill observed with no findings becomes Validated: not on a retake, and not when the case rated its
+  // dimension Needs work. A Validated one observed cleanly has its review clock reset.
+  const dimensionOf = (id: string) => DRILLS_CONFIG.taxonomy.areas.find(a => a.code === getSkill(id).area)!.rubric_dimension;
   for (const id of retake ? [] : payload.skills_observed) {
-    if (stateBefore(id) === 'mastered' && !flagged.has(id)) move(id, 'validated', `case ${payload.case_id} used it with no mistakes`);
+    if (flagged.has(id) || payload.rubric_scores[dimensionOf(id)] === 'needs_work') continue;
+    if (stateBefore(id) === 'mastered') move(id, 'validated', `case ${payload.case_id} used it with no mistakes`);
+    if (stateBefore(id) === 'mastered' || stateBefore(id) === 'validated') get(id).next_review_at = new Date(ctx.now.getTime() + reviewDays * DAY);
   }
 
   // Rules 2–4: score, drop skills with no live drill, take the top 3 with at
   // most 2 from one skill area.
   const w = DRILLS_CONFIG.rules.prescriptions.weights;
-  const previouslyFlagged = new Set((previous?.findings ?? []).map(f => skillOf(f.tag)));
   const scored = [...flagged].filter(([id]) => hasLiveDrill(id, isLive)).map(([id, fs]) => ({
     id, fs,
     priority: fs.reduce((s, f) => s + (f.severity === 'major' ? w.major : w.minor), 0)

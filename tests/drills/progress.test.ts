@@ -97,30 +97,58 @@ describe('case → prescriptions (PRD "Prescription rules")', () => {
   });
 });
 
-describe('case → skill states (PRD "Updating skill state from cases")', () => {
-  it('drops a flagged Practiced, Mastered or Validated skill to Recognizes, next stage Construct', () => {
+describe('case → skill states (Matt, 15 Nov, D3; PRD "Updating skill state from cases")', () => {
+  const clean = { structure: 'meets_bar', quantitative: 'meets_bar', synthesis: 'meets_bar' } as const;
+
+  it('once: Validated back to Mastered and Mastered stays, each with a review due now; Practiced stays, its transfer check 2 days later', () => {
+    const before = progress(
+      { skill_id: 'QN.setup', state: 'practiced', stage: 'construct', l2_streak: 2, transfer_due_at: t0 },
+      { skill_id: 'SY.answer_first', state: 'validated', next_review_at: new Date(t0.getTime() + 9 * DAY) },
+      { skill_id: 'PS.mece', state: 'mastered' },
+    );
+    const u = applyCase(before, caseWith([['M.wrong_formula', 'minor'], ['M.hedged_recommendation', 'minor'], ['M.missing_bucket', 'major']]), null, at(0));
+    expect(u.transitions.map(t => [t.skill_id, t.from, t.to])).toEqual([['SY.answer_first', 'validated', 'mastered']]);
+    expect(u.progress.get('SY.answer_first')!.next_review_at).toEqual(t0);
+    expect(u.progress.get('PS.mece')).toMatchObject({ state: 'mastered', next_review_at: t0 });
+    expect(u.progress.get('QN.setup')).toMatchObject({ state: 'practiced', stage: 'construct', l2_streak: 2, transfer_due_at: new Date(t0.getTime() + 2 * DAY) });
+    expect(u.regressions).toEqual(['SY.answer_first', 'PS.mece']);
+  });
+
+  it('twice in a row: Mastered or Validated down to Practiced with the transfer check due; Practiced down to Recognizes', () => {
     const before = progress(
       { skill_id: 'QN.setup', state: 'practiced', stage: 'construct', l2_streak: 2, transfer_due_at: t0 },
       { skill_id: 'SY.answer_first', state: 'validated', next_review_at: t0 },
+      { skill_id: 'PS.mece', state: 'mastered' },
     );
-    const u = applyCase(before, caseWith([['M.wrong_formula', 'minor'], ['M.hedged_recommendation', 'minor']]), null, at(0));
-    expect(u.transitions.map(t => [t.skill_id, t.from, t.to])).toEqual([
-      ['QN.setup', 'practiced', 'recognizes'], ['SY.answer_first', 'validated', 'recognizes'],
-    ]);
+    const now = caseWith([['M.wrong_formula', 'minor'], ['M.hedged_recommendation', 'minor'], ['M.missing_bucket', 'major']]);
+    const u = applyCase(before, now, caseWith([['M.missing_term', 'minor'], ['M.buried_recommendation', 'minor'], ['M.overlapping_buckets', 'minor']]), at(0));
+    expect(u.transitions.map(t => [t.skill_id, t.to])).toEqual([['QN.setup', 'recognizes'], ['SY.answer_first', 'practiced'], ['PS.mece', 'practiced']]);
     expect(u.progress.get('QN.setup')).toMatchObject({ stage: 'construct', l2_streak: 0, transfer_due_at: null });
-    expect(u.progress.get('SY.answer_first')!.next_review_at).toBeNull();
+    expect(u.progress.get('PS.mece')).toMatchObject({ transfer_due_at: t0, next_review_at: null });
   });
 
-  it("doesn't validate on a retake, but still drops a flagged skill", () => {
+  it("a retake or a case ended early is never the second of a repeat", () => {
+    const before = progress({ skill_id: 'PS.mece', state: 'mastered' });
+    const previous = caseWith([['M.overlapping_buckets', 'minor']]);
+    const now = caseWith([['M.missing_bucket', 'major']]);
+    expect(applyCase(before, now, previous, at(0), true).progress.get('PS.mece')).toMatchObject({ state: 'mastered', next_review_at: t0 });
+    expect(applyCase(before, { ...now, partial: true }, previous, at(0)).progress.get('PS.mece')!.state).toBe('mastered');
+  });
+
+  it("doesn't validate on a retake, but a finding still makes a review due", () => {
     const before = progress({ skill_id: 'PS.mece', state: 'mastered' }, { skill_id: 'QN.setup', state: 'mastered' });
-    const u = applyCase(before, caseWith([['M.wrong_formula', 'minor']], { skills_observed: ['PS.mece', 'QN.setup'] }), null, at(0), true);
-    expect(u.transitions.map(t => [t.skill_id, t.to])).toEqual([['QN.setup', 'recognizes']]);
+    const u = applyCase(before, caseWith([['M.wrong_formula', 'minor']], { skills_observed: ['PS.mece', 'QN.setup'], rubric_scores: clean }), null, at(0), true);
+    expect(u.transitions).toEqual([]);
+    expect(u.progress.get('QN.setup')!.next_review_at).toEqual(t0);
   });
 
-  it('validates a Mastered skill the case observed with no findings, and leaves other states alone', () => {
-    const before = progress({ skill_id: 'PS.mece', state: 'mastered' }, { skill_id: 'QN.setup', state: 'practiced' });
-    const u = applyCase(before, caseWith([], { skills_observed: ['PS.mece', 'QN.setup'] }), null, at(0));
+  it('validates a Mastered skill observed with no findings, unless its dimension was rated Needs work; a clean Validated skill resets its review clock', () => {
+    const before = progress({ skill_id: 'PS.mece', state: 'mastered' }, { skill_id: 'QN.setup', state: 'practiced' }, { skill_id: 'SY.answer_first', state: 'validated', next_review_at: t0 });
+    const u = applyCase(before, caseWith([], { skills_observed: ['PS.mece', 'QN.setup', 'SY.answer_first'], rubric_scores: clean }), null, at(0));
     expect(u.transitions.map(t => [t.skill_id, t.to])).toEqual([['PS.mece', 'validated']]);
+    expect(u.progress.get('SY.answer_first')!.next_review_at).toEqual(new Date(t0.getTime() + 14 * DAY));
+    const weak = applyCase(before, caseWith([], { skills_observed: ['PS.mece'], rubric_scores: { ...clean, structure: 'needs_work' } }), null, at(0));
+    expect(weak.transitions).toEqual([]);
   });
 });
 

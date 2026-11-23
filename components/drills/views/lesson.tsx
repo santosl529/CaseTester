@@ -4,17 +4,19 @@ import { ArrowLink } from '@/components/brand/links';
 import { drillsForSkill } from '@/lib/drills/drill-info';
 import { IntroLessonBody, LessonBody, type IntroLessonContent, type LessonContent } from '@/components/drills/lesson';
 import { IntroLessonActions, LessonActions } from '@/components/drills/lesson-actions';
+import { KindTag } from '@/components/drills/kind-tag';
 
-type Source = 'auto' | 'intro' | 'library' | 'low_score';
+type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'case_report';
 
 // A lesson and the intro lesson. Their pages (app/drills/learn/[skillId] and
 // …/intro) load the lesson and pick the mode.
 
-export function LessonScreen({ lesson, mode, source, start }: {
+export function LessonScreen({ lesson, mode, source, start, reportCase }: {
   lesson: LessonContent & { lesson_id: string; version: number; skill_id: string };
   mode: 'full' | 'summary';
   source: Source;
   start: React.ComponentProps<typeof LessonActions>['start'];
+  reportCase?: string;
 }) {
   return (
     <AppPage className="space-y-10">
@@ -28,11 +30,11 @@ export function LessonScreen({ lesson, mode, source, start }: {
           <section aria-labelledby="practice" className="t-small flex flex-wrap items-baseline gap-x-4 gap-y-1.5">
             <h2 id="practice" className="font-semibold">Practice this in:</h2>
             <ul className="contents">
-              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id}><ArrowLink href={`/drills/browse#drill-${d.drill_id}`}>{d.name}</ArrowLink></li>)}
+              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id}><KindTag kind="drill" /><ArrowLink href={`/drills/browse#drill-${d.drill_id}`}>{d.name}</ArrowLink></li>)}
             </ul>
           </section>
         )}
-        <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} />
+        <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} reportCase={reportCase} />
       </div>
     </AppPage>
   );

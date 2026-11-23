@@ -7,6 +7,7 @@ import type { ProgramRow } from '@/lib/drills/program/store';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { RefreshWhileGrading, SkipDiagnosticButton } from '@/components/drills/diagnostic-actions';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const PLACE = {
   recognize: 'Starts with recognizing good answers',
@@ -59,7 +60,7 @@ export function DiagnosticScreen({ view, track, retake }: { view: DiagnosticData
           <ol className="t-small divide-y divide-ink/10 overflow-hidden rounded-panel border border-ink/12 bg-white shadow-quiet">
             {view.parts.map(p => (
               <li key={p.index} className="flex items-center justify-between gap-3 px-4 py-3">
-                <span className="flex items-center gap-3"><StepDot state={p.status === 'done' ? 'done' : p.index === next?.index ? 'current' : 'todo'} /><span><span className="text-ink/70">Part {p.index + 1} · </span><span className="font-semibold">{p.drill_name}</span></span></span>
+                <span className="flex items-center gap-3"><StepDot state={p.status === 'done' ? 'done' : p.index === next?.index ? 'current' : 'todo'} /><span><span className="text-ink/70">Part {p.index + 1} · </span><KindTag kind="drill" /><span className="font-semibold">{p.drill_name}</span></span></span>
                 <span className="text-ink/70">{STATUS[p.status] || `${p.size} item${p.size > 1 ? 's' : ''}`}</span>
               </li>
             ))}
@@ -67,7 +68,7 @@ export function DiagnosticScreen({ view, track, retake }: { view: DiagnosticData
           {next && (
             <div className="flex flex-wrap gap-3">
               {next.status === 'in_progress' && next.set_id
-                ? <Link href={`/drills/sets/${next.set_id}`} className={buttonVariants({ size: 'lg' })}>Continue part {next.index + 1} of {parts}</Link>
+                ? <StartSetButton body={{ diagnostic_part: next.index }} label={`Continue part ${next.index + 1} of ${parts}`} size="lg" />
                 : <StartSetButton body={{ diagnostic_part: next.index }} label={`Start part ${next.index + 1} of ${parts}`} size="lg" />}
               <SkipDiagnosticButton label="Stop for now" />
             </div>

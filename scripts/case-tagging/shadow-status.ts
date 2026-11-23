@@ -29,7 +29,7 @@ async function main() {
     const labels = r.labels as Record<string, unknown>;
     return judge.length > 0 && judge.every(p => p.id in labels);
   }).length;
-  console.log(`reports read (every point labeled): ${labeled} of 20`);
+  console.log(`reports read (every point labeled): ${labeled}`);
 
   // Scored in the same period with no run: shadow mode missed them (switch off then, a failure before the record,
   // or the function stopped before the after-response step finished).

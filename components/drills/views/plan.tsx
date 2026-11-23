@@ -11,6 +11,7 @@ import { ArrowLink } from '@/components/brand/links';
 import { ChevronRight } from 'lucide-react';
 import { WeekCount } from '@/components/drills/week-count';
 import { scheduleCell, segmentState, showFirstWorkout, type SegmentState } from '@/lib/drills/program/plan-page';
+import { KindTag } from '@/components/drills/kind-tag';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const date = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -55,7 +56,7 @@ export function PlanScreen({ track, source, rx, checks, view, workout, next, sta
         <ul className="space-y-2">
           {rx.map(r => (
             <li key={r.id} className="t-small rounded-panel border border-ink/12 bg-white p-4">
-              <span className="font-semibold">{r.skill_name}</span> <span className="text-ink/70">· {r.drill_name}</span>
+              <span className="font-semibold">{r.skill_name}</span> <span className="text-ink/70">· <KindTag kind="drill" />{r.drill_name}</span>
               <span className="block text-ink/70">{r.reason}</span>
             </li>
           ))}
@@ -134,7 +135,7 @@ export function PlanScreen({ track, source, rx, checks, view, workout, next, sta
         <section aria-labelledby="first" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
           <h2 id="first" className="t-heading font-semibold">Your first workout</h2>
           <ol className="t-small list-decimal space-y-1.5 pl-5 marker:text-ink/50">
-            {workout.blocks.map((b, i) => <li key={i} className="pl-1"><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason}</span></li>)}
+            {workout.blocks.map((b, i) => <li key={i} className="pl-1"><KindTag kind="drill" /><span className="font-semibold">{getDrill(b.drill_id).name}</span> <span className="text-ink/70">· {b.reason}</span></li>)}
           </ol>
           {/* Outline: Your plan has no main button (Matt, 13 Nov). */}
           {startHref
@@ -197,7 +198,7 @@ export function PlanScreen({ track, source, rx, checks, view, workout, next, sta
           <ul className="mt-4 space-y-2">
             {rx.map(r => (
               <li key={r.id} className="t-small rounded-window border border-ink/12 p-4">
-                <span className="font-semibold">{r.skill_name}</span> <span className="text-ink/70">· {r.drill_name}</span>
+                <span className="font-semibold">{r.skill_name}</span> <span className="text-ink/70">· <KindTag kind="drill" />{r.drill_name}</span>
                 <span className="block text-ink/70">{r.reason}</span>
               </li>
             ))}

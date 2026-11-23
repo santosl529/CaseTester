@@ -30,6 +30,9 @@ export const CaseResultPayloadSchema = z.object({
     turn_ids: z.array(z.number().int().nonnegative()).min(1),
     // Exact transcript quote; shown to the student in the prescription reason.
     evidence: z.string().trim().min(1),
+    // The report's own plain-words "next time" for the point (plain-feedback.ts), shown with a finding on a skill
+    // with no live drill ("Also from this case"; Matt, 15 Nov, D4). Optional: no new text is written for it.
+    tip: z.string().trim().min(1).optional(),
   })),
   // The candidate ended the case early (Rule 18A): findings count, but it never
   // counts for readiness, and a skill validates only if its stage finished

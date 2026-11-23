@@ -9,6 +9,8 @@ import { STATE_LABEL, enoughTrend } from '@/lib/drills/progress/dashboard';
 import { OptionsMenu } from '@/components/brand/options-menu';
 import { Check, ChevronRight } from 'lucide-react';
 import { AppPage } from '@/components/brand/page';
+import { Badge } from '@/components/ui/badge';
+import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
 
 const pct = (x: number | null) => (x === null ? '' : `${Math.round(x * 100)}%`);
 // The readiness line's state for the plan's key (milestone) skills (rules: readiness.milestone_min_state).
@@ -165,9 +167,12 @@ export function ProgressScreen({ v, window, period, group, openDetail = false }:
             <ViewToggle label="This summary compares" name="window" current={String(window)} params={params}
               options={dash.compare_windows_days.map(d => ({ value: String(d), text: d === 7 ? 'This week with last week' : `Last ${d} days with the ${d} before` }))} />
             <p className="t-body font-semibold">{v.summary.sentence}</p>
+            {/* Case dimensions that moved since the last case at the same level (Matt, 15 Nov). */}
+            {v.summary.case_lines.length > 0 && <ul className="t-small space-y-0.5">{v.summary.case_lines.map(l => <li key={l}>{l}</li>)}</ul>}
             <p className="t-small">{v.counts.mastered} of {v.counts.live} skills at Mastered or above</p>
             <Source from="both" />
           </section>
+          {v.case_to_case.length > 0 && <CaseToCase cards={v.case_to_case} />}
           <section aria-labelledby="trends" className="space-y-4">
             <h3 id="trends" className="t-card font-semibold">Trends</h3>
             <div className="grid gap-6 lg:grid-cols-2">
@@ -195,3 +200,46 @@ export function ProgressScreen({ v, window, period, group, openDetail = false }:
     </AppPage>
   );
 }
+
+// Case to case (Matt, 15 Nov): per level, the latest case against the one before it, only the areas that moved.
+// Shown only when case results reach drills (CASE_TO_DRILLS on).
+const PILL: Record<string, 'strong' | 'adequate' | 'needsWork'> = { strong: 'strong', meets_bar: 'adequate', needs_work: 'needsWork' };
+const rating = (r: string) => { const l = RATING_LABELS[r as Rating] ?? r; return l.charAt(0).toUpperCase() + l.slice(1); };
+function CaseToCase({ cards }: { cards: DashboardData['case_to_case'] }) {
+  return (
+    <section aria-labelledby="case-to-case" className="space-y-4">
+      <h3 id="case-to-case" className="t-card font-semibold">Case to case</h3>
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        {cards.map(c => (
+          <div key={c.level} className="space-y-2 rounded-panel border border-ink/12 p-4">
+            <p className="t-body font-semibold">{c.level} cases</p>
+            {c.kind === 'one' ? (
+              <p className="t-small text-ink/70">One so far. A comparison appears after your second.</p>
+            ) : (
+              <>
+                <p className="t-small text-ink/70">{c.from.title} ({c.from.date}) → {c.to.title} ({c.to.date})</p>
+                {c.moved.length === 0 ? <p className="t-small">No area moved.</p> : (
+                  <ul className="space-y-2">
+                    {c.moved.map(r => (
+                      <li key={r.area} className="t-small">
+                        <span className="block font-medium">{r.area}</span>
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant={PILL[r.before]}>{rating(r.before)}</Badge>
+                          <span aria-hidden="true" className={`font-semibold ${r.move > 0 ? 'text-mastery' : 'text-cobalt'}`}>{r.move > 0 ? '↑' : '↓'}</span>
+                          <span className="sr-only">{r.move > 0 ? ', up to ' : ', down to '}</span>
+                          <Badge variant={PILL[r.after]}>{rating(r.after)}</Badge>
+                        </span>
+                        {r.sets > 0 && <span className="block text-ink/70">{r.sets} drill {r.sets === 1 ? 'set' : 'sets'} in between</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+

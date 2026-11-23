@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
+import { KindTag } from '@/components/drills/kind-tag';
 
 // While a set is being AI-graded, re-check every 2 seconds (PRD: "Clients
 // poll every 2 s while status is grading"); every 15 once grading is delayed.
@@ -14,7 +15,7 @@ export function GradingWait({ drillName, delayed }: { drillName: string; delayed
   }, [router, delayed]);
   return (
     <section role="status" aria-live="polite" className="space-y-3 rounded-panel border border-ink/12 bg-white p-6 shadow-quiet sm:p-8">
-      <h1 className="t-title">{drillName}</h1>
+      <h1 className="t-title"><KindTag kind="drill" className="align-middle" />{drillName}</h1>
       {delayed ? (
         <>
           <p className="t-body font-semibold">Grading delayed</p>

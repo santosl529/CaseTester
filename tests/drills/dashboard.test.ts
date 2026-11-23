@@ -119,7 +119,8 @@ describe('Your progress: readiness, strengths, next step', () => {
     expect(r.status).toBe('Getting close');
     expect(readiness(progress(all), live, [kase('a', 2, 10), kase('b', 3, 5)], true).status).toBe('Interview ready');
     // Tier 1 cases don't count.
-    expect(readiness(progress(all), live, [kase('a', 1, 10), kase('b', 1, 5)], true).lines[2].met).toBe(false);
+    expect(readiness(progress(all), live, [kase('a', 1, 10), kase('b', 1, 5)], true).lines[2].met).toBe(false);    // A case ended early never counts (Matt, 15 Nov, D9).
+    expect(readiness(progress(all), live, [kase('a', 2, 10), { ...kase('b', 3, 5), partial: true }], true).lines[2]).toMatchObject({ met: false, detail: '1 of your last 1 met the bar.' });
   });
 
   it('says why the case line is open while no case data arrives', () => {

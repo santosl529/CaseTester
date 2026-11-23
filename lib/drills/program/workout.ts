@@ -39,7 +39,13 @@ export interface WorkoutBlock {
   // A short check of a questionnaire placement (D6 round 2): its score
   // re-places the skill.
   check?: boolean;
+  // Weak spots on other skills this set covers (pre-pilot audit S8, Matt 21 Nov): two prescriptions on one drill run
+  // as one set, never the same drill twice. A generated drill's items target every skill listed.
+  also_skills?: string[];
 }
+
+// The merged block's reason gains a line per skill it also covers (S8).
+export const alsoCovers = (skillId: string) => `Also covers ${lowerName(skillId)}.`;
 
 export interface WorkoutInput {
   track: Exclude<Track, 'self_directed'>;
@@ -50,6 +56,8 @@ export interface WorkoutInput {
   tiers: Record<string, number>;
   prescriptions: OpenPrescription[];
   missed_milestone_skills: string[];
+  // This week's unmet milestone skills: milestone first (weekMilestoneSkills).
+  milestone_skills?: string[];
   time_multiplier: number;
   ctx: Context;
   // Questionnaire placements still to confirm, one skill per area, in order.
@@ -137,9 +145,21 @@ export function buildWorkout(input: WorkoutInput): Workout {
   const state = (id: string) => input.progress.get(id) ?? newProgress(id);
   const used = new Set<string>();
   const blocks: WorkoutBlock[] = [];
-  const take = (slot: Slot, p: SkillProgress, reason: string, prescription_id: string | null = null) => {
+  // Never the same drill twice in one workout (S8, Matt 21 Nov). A weak spot whose drill is already another weak
+  // spot's joins that set (one set covering both; `mergeable`); any other repeat is passed over, so its slot takes
+  // the next candidate.
+  const take = (slot: Slot, p: SkillProgress, reason: string, prescription_id: string | null = null, mergeable = false) => {
     const b = blockFor(p, input, slot);
     if (!b) return null;
+    const same = blocks.find(x => x.drill_id === b.drill_id);
+    if (same) {
+      if (mergeable && same.slot === 'weak' && same.prescription_id && !same.check) {
+        used.add(p.skill_id);
+        same.also_skills = [...(same.also_skills ?? []), p.skill_id];
+        same.reason = `${same.reason} ${alsoCovers(p.skill_id)}`;
+      }
+      return null;
+    }
     used.add(p.skill_id);
     const block = { ...b, slot, reason, prescription_id, set_id: null };
     blocks.push(block);
@@ -170,7 +190,7 @@ export function buildWorkout(input: WorkoutInput): Workout {
   // Weak spots (50%): highest-priority open prescriptions, +2 for the week's
   // focus, +1 for a missed milestone; at most one set per skill. A skill whose
   // transfer check is due takes the unfamiliar slot instead.
-  const ranked = rankPrescriptions(input.prescriptions, input.week, input.missed_milestone_skills);
+  const ranked = rankPrescriptions(input.prescriptions, input.week, input.missed_milestone_skills, input.milestone_skills ?? []);
   const weakBudget = target * w.mix.weak;
   let weakMinutes = 0;
   let weakSets = 0;
@@ -188,24 +208,27 @@ export function buildWorkout(input: WorkoutInput): Workout {
   for (const { rx } of ranked) {
     if (weakSets >= 2 || (weakSets >= 1 && weakMinutes >= weakBudget)) break;
     if (used.has(rx.skill_id) || transferDue(state(rx.skill_id), input)) continue;
-    const b = take('weak', state(rx.skill_id), rx.reason, rx.id);
+    const b = take('weak', state(rx.skill_id), rx.reason, rx.id, true);
     if (b) { weakMinutes += b.minutes; weakSets++; }
   }
 
   // Unfamiliar (25%): a due transfer check (it may run long).
-  const transfer = [...input.progress.values()].filter(p => !used.has(p.skill_id) && transferDue(p, input))
-    .sort((a, b) => (a.transfer_due_at?.getTime() ?? 0) - (b.transfer_due_at?.getTime() ?? 0))[0];
-  if (transfer) {
-    take('unfamiliar', { ...transfer, transfer_due_at: new Date(Math.min(now, transfer.transfer_due_at?.getTime() ?? now)) },
-      `Transfer check: ${lowerName(transfer.skill_id)} on cases you haven't seen.`);
+  const transfers = [...input.progress.values()].filter(p => !used.has(p.skill_id) && transferDue(p, input))
+    .sort((a, b) => (a.transfer_due_at?.getTime() ?? 0) - (b.transfer_due_at?.getTime() ?? 0));
+  let transfer: SkillProgress | undefined;
+  for (const t of transfers) {
+    if (take('unfamiliar', { ...t, transfer_due_at: new Date(Math.min(now, t.transfer_due_at?.getTime() ?? now)) },
+      `Transfer check: ${lowerName(t.skill_id)} on cases you haven't seen.`)) { transfer = t; break; }
   }
 
   // Review (25%): the most overdue Mastered or Validated skill; else the
   // Practiced or Mastered skill practiced longest ago.
   const due = strong.filter(p => !used.has(p.skill_id) && (p.state === 'mastered' || p.state === 'validated') && p.next_review_at && p.next_review_at.getTime() <= now)
     .sort((a, b) => a.next_review_at!.getTime() - b.next_review_at!.getTime());
-  const reviewPick = due[0] ?? strong.find(p => !used.has(p.skill_id) && !transferDue(p, input));
-  if (reviewPick) take('review', reviewPick, due[0] ? `Time to review ${lowerName(reviewPick.skill_id)}: ${daysSince(reviewPick, now)} days since you last practiced it.` : `Keeping ${lowerName(reviewPick.skill_id)} fresh.`);
+  const dueIds = new Set(due.map(p => p.skill_id));
+  for (const pick of [...due, ...strong.filter(p => !used.has(p.skill_id) && !dueIds.has(p.skill_id) && !transferDue(p, input))]) {
+    if (take('review', pick, dueIds.has(pick.skill_id) ? `Time to review ${lowerName(pick.skill_id)}: ${daysSince(pick, now)} days since you last practiced it.` : `Keeping ${lowerName(pick.skill_id)} fresh.`)) break;
+  }
 
   // Unfamiliar, when no transfer check is due: a half-size set on a skill at
   // Recognizes or above, from case types the student hasn't seen on it
@@ -213,14 +236,25 @@ export function buildWorkout(input: WorkoutInput): Workout {
   if (!transfer) {
     const fresh = [...input.progress.values()]
       .filter(p => !used.has(p.skill_id) && stateRank(p.state) >= stateRank('recognizes'))
-      .sort((a, b) => (a.last_practiced_at?.getTime() ?? 0) - (b.last_practiced_at?.getTime() ?? 0))[0];
-    if (fresh) take('unfamiliar', fresh, `${getSkill(fresh.skill_id).name} on a new kind of case.`);
+      .sort((a, b) => (a.last_practiced_at?.getTime() ?? 0) - (b.last_practiced_at?.getTime() ?? 0));
+    for (const f of fresh) if (take('unfamiliar', f, `${getSkill(f.skill_id).name} on a new kind of case.`)) break;
   }
 
   // Fewer than 2 sets: more weak spots.
   for (const { rx } of ranked) {
     if (blocks.length >= w.min_sets) break;
-    if (!used.has(rx.skill_id)) take('weak', state(rx.skill_id), rx.reason, rx.id);
+    if (!used.has(rx.skill_id)) take('weak', state(rx.skill_id), rx.reason, rx.id, true);
+  }
+  // A weak spot left out once the slots were full still joins a set whose drill it shares (Matt, 22 Nov): that set
+  // covers it too, so it never shows up later as the same drill again (Today's Bonus Quick Fix).
+  for (const { rx } of ranked) {
+    if (used.has(rx.skill_id) || transferDue(state(rx.skill_id), input)) continue;
+    const b = blockFor(state(rx.skill_id), input, 'weak');
+    const same = b && blocks.find(x => x.drill_id === b.drill_id && x.slot === 'weak' && x.prescription_id && !x.check);
+    if (!same) continue;
+    used.add(rx.skill_id);
+    same.also_skills = [...(same.also_skills ?? []), rx.skill_id];
+    same.reason = `${same.reason} ${alsoCovers(rx.skill_id)}`;
   }
   const order: Slot[] = ['review', 'weak', 'unfamiliar'];
   blocks.sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot));
@@ -305,13 +339,28 @@ export function weekMilestones(week: PlanWeek, all: PlanWeek[], facts: Milestone
 }
 
 // Milestone skills from earlier weeks not yet met: +1 in the weak-spot pool.
-// The weak-spot order (also Your progress's focus areas, so the two never
-// disagree): priority, +2 for the week's focus, +1 for a missed milestone;
-// ties go to the more reliable source, then the older prescription.
-export function rankPrescriptions(prescriptions: OpenPrescription[], week: PlanWeek | null, missedMilestones: string[]) {
-  return prescriptions
+// The weak-spot order (also Your progress's focus areas and a case report's
+// next steps, so they never disagree): priority, +2 for the week's focus, +1
+// for a missed milestone; ties go to the more reliable source, then the older
+// prescription. Milestone first (Matt, 15 Nov, D6): when this week has an unmet
+// milestone skill with an open prescription, the top-ranked one leads, so a
+// case's findings never push the week's milestone out of the first slot.
+export function rankPrescriptions(prescriptions: OpenPrescription[], week: PlanWeek | null, missedMilestones: string[], milestoneSkills: string[] = []) {
+  const ranked = prescriptions
     .map(rx => ({ rx, score: rx.priority + (inFocus(rx.skill_id, week) ? programs.focus_priority_bonus : 0) + (missedMilestones.includes(rx.skill_id) ? programs.missed_milestone_bonus : 0) }))
     .sort((a, b) => b.score - a.score || SOURCE_ORDER[a.rx.source] - SOURCE_ORDER[b.rx.source] || a.rx.created_at.getTime() - b.rx.created_at.getTime());
+  const lead = ranked.findIndex(r => milestoneSkills.includes(r.rx.skill_id));
+  return lead > 0 ? [ranked[lead], ...ranked.slice(0, lead), ...ranked.slice(lead + 1)] : ranked;
+}
+
+// This week's milestone skills not reached yet (its "skills" and "earlier
+// milestones" milestones): the ones milestone-first puts in the first slot.
+export function weekMilestoneSkills(current: PlanWeek | null, all: PlanWeek[], progress: ProgressMap): string[] {
+  if (!current) return [];
+  const earlier = all.filter(w => w.week < current.week).flatMap(w => w.milestones);
+  const facts: MilestoneFacts = { progress, prescribed_skills: [], tier3_passes: 0, cases_this_week: 0 };
+  return [...new Set(current.milestones.filter(m => m.type === 'skills' || m.type === 'earlier_milestones')
+    .flatMap(m => milestoneGaps(m, facts, earlier).skills))];
 }
 
 export function missedMilestoneSkills(current: PlanWeek | null, all: PlanWeek[], progress: ProgressMap): string[] {
@@ -322,3 +371,16 @@ export function missedMilestoneSkills(current: PlanWeek | null, all: PlanWeek[],
   }
   return [...out];
 }
+
+// Today's Bonus Quick Fix (Matt, 15 and 22 Nov): the first ranked prescription whose skill today's workout doesn't
+// cover (its skills and the skills its sets also cover) and whose next set isn't one of the workout's drills.
+export function pickQuickFix<T extends { skill_id: string }>(ranked: T[], covered: Set<string>, workoutDrills: Set<string>, nextDrill: (skillId: string) => string | null): T | null {
+  for (const rx of ranked) {
+    if (covered.has(rx.skill_id)) continue;
+    const drill = nextDrill(rx.skill_id);
+    if (drill && workoutDrills.has(drill)) continue;
+    return rx;
+  }
+  return null;
+}
+

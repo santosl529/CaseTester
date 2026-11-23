@@ -20,7 +20,7 @@ export interface ReviewRun {
 }
 export interface TagOption { id: string; name: string }
 
-// The shadow review page (Matt, 15 Nov, D11; local development only): each
+// The case-tag review page (Matt, 15 Nov, D11; local development only; no shadow period since 21 Nov): each
 // graded case's tagged points — every group, also those switched off — the
 // findings and prescriptions it would make, and a label per point. Labels
 // follow the written rules; a switched-off group goes on only after its gate
@@ -29,13 +29,13 @@ export function CaseTagReviewScreen({ runs, tags, read, since }: { runs: ReviewR
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <header className="space-y-2">
-        <h1 className="t-title">Case tags: shadow review</h1>
+        <h1 className="t-title">Case tags: review</h1>
         <p className="t-body text-ink/80">
-          {read} of 20 real reports read (every point labeled).{since && ` Shadow since ${since}; it ends at 20 reports or two weeks, whichever comes first.`}
+          {read} {read === 1 ? 'report' : 'reports'} read (every point labeled).{since && ` Runs recorded since ${since}.`}
         </p>
         <p className="t-small text-ink/70">Label each point by the written rules (lib/scoring/skill-tag-rules.ts), not by the tagger&apos;s answer. Groups switched off show “no drill”.</p>
       </header>
-      {runs.length === 0 && <p className="t-body">No graded cases yet. Set CASE_TO_DRILLS=shadow and grade a case.</p>}
+      {runs.length === 0 && <p className="t-body">No graded cases yet. Set CASE_TO_DRILLS to shadow or on and grade a case.</p>}
       {runs.map(r => <RunCard key={r.sessionId} run={r} tags={tags} />)}
     </main>
   );

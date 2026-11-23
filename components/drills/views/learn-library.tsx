@@ -5,6 +5,7 @@ import { AppPage } from '@/components/brand/page';
 import { DRILLS_CONFIG, getSkill } from '@/lib/drills/config';
 import { FOR_YOU_REASON, type ForYouReason } from '@/lib/drills/learn-page';
 import type { IntroLesson } from '@/lib/drills/lessons';
+import { KindTag } from '@/components/drills/kind-tag';
 
 // The Learn library's screen; app/drills/learn/page.tsx loads its data. One
 // job, reading a lesson (Matt, 13 Nov): For you this week, Start here, then
@@ -82,7 +83,7 @@ function Row({ href, title, line, read }: { href: string; title: string; line: s
   return (
     <Link href={href} className="group t-small flex items-center gap-4 p-4 transition-colors hover:bg-paper motion-reduce:transition-none">
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold group-hover:text-cobalt">{title}</span>
+        <span className="block font-semibold group-hover:text-cobalt"><KindTag kind="lesson" />{title}</span>
         <span className="block text-ink/70">{line}</span>
       </span>
       {read && (

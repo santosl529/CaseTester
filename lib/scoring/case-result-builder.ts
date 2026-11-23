@@ -28,7 +28,7 @@ import type { TagPoint, TagResult } from './skill-tags';
 type Finding = CaseResultPayload['findings'][number];
 type Turn = { turnIndex: number; text: string };
 
-// One point as recorded in case_result_runs.points (and on the shadow review page).
+// One point as recorded in case_result_runs.points (and on the case-tag review page).
 export type RunPoint = {
   id: string;
   group: TagGroup;
@@ -158,7 +158,8 @@ export function buildCaseResult(input: BuildInput): { payload: CaseResultPayload
     if (!quote) return { ...base, finding: null, note: 'no quote found in a candidate turn' };
     const minor = p.rating === 'meets_bar' || p.rating === 'strong';
     const severity = t.tag === topFixTag ? 'major' : minor ? 'minor' : defaultSeverity(t.tag);
-    return { ...base, finding: { tag: t.tag, severity, turn_ids: turnsOf(quote, input.candidateTurns), evidence: quote }, note: null };
+    const tip = input.rubric[p.dimension].needsWork[Number(p.id.split(':')[1])]?.plain?.next;
+    return { ...base, finding: { tag: t.tag, severity, turn_ids: turnsOf(quote, input.candidateTurns), evidence: quote, ...(tip && { tip }) }, note: null };
   });
 
   const checker: RunCheckerFinding[] = input.checker.map(c => {

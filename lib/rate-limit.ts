@@ -22,6 +22,8 @@ export const RATE_LIMIT_DEFAULTS = {
   verifyResend: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_VERIFY_EMAILS_PER_HOUR' },
   // Report a problem (14 Nov): each report is an email to the founders.
   problemReport: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PROBLEM_REPORTS_PER_HOUR' },
+  // Page views (pilot dashboard, 22 Nov): past this, an address's views go uncounted for the hour.
+  pageView: { limit: 600, windowMs: HOUR, env: 'RATE_LIMIT_PAGE_VIEWS_PER_HOUR' },
 } as const;
 export type RateRuleName = keyof typeof RATE_LIMIT_DEFAULTS;
 export type RateRule = { name: string; limit: number; windowMs: number };
