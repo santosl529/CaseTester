@@ -27,7 +27,8 @@ export async function startChoice(studentId: string, now = new Date()): Promise<
   const lines = caseCardLines(limits.perDay, decision.ok ? null : decision.reason);
   return {
     case: {
-      href: nextCaseHref(STARTING_POINT_CASE_ID),
+      // Straight to the Brew & Bean card on Cases (marked Recommended), not the top of the list (Matt, 22 Nov).
+      href: nextCaseHref(STARTING_POINT_CASE_ID).replace('#cases', `#case-${STARTING_POINT_CASE_ID}`),
       minutes: caseMinutes(STARTING_POINT_CASE_ID) ?? 20,
       uses: limits.exempt.has(studentId) ? null : lines.uses,
       blocked: decision.ok ? null : lines.blocked ?? limitMessage({ reason: decision.reason, limit: decision.limit, retryAt: decision.retryAt.toISOString() }),

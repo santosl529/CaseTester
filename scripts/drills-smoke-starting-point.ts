@@ -125,6 +125,8 @@ async function main() {
     check(!(await planFromCase(e)), 'the demo is not a plan source');
     const he = await homeView(e);
     check(he.kind === 'plan' && he.start_choice !== null, 'after the demo, Today still offers the choice');
+    check(he.kind === 'plan' && he.next_case === null, 'no Next case card while the choice shows (Matt, 22 Nov)');
+    check(he.kind === 'plan' && he.start_choice?.case?.href === '/home?case=prof-001#case-prof-001', `the case card goes to the Brew & Bean card (${he.kind === 'plan' ? he.start_choice?.case?.href : ''})`);
 
     console.log('starting point: placement, quick checks, set aside for readiness and the picker, retakes, building, the demo');
   } finally {

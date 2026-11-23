@@ -58,9 +58,9 @@ const RX = [
 // student who hasn't opened the intro lesson.
 // The starting-point choice's case card (Matt, 22 Nov): open, today's cases used, or the last case ended too early.
 const CHOICE = {
-  open: { case: { href: '/home?case=prof-001#cases', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: false },
-  limit: { case: { href: '/home?case=prof-001#cases', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: 'You’ve used today’s 2 cases. Take the quiz now, or come back tomorrow.' }, endedEarly: false },
-  ended: { case: { href: '/home?case=prof-001#cases', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: true },
+  open: { case: { href: '/home?case=prof-001#case-prof-001', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: false },
+  limit: { case: { href: '/home?case=prof-001#case-prof-001', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: 'You’ve used today’s 2 cases. Take the quiz now, or come back tomorrow.' }, endedEarly: false },
+  ended: { case: { href: '/home?case=prof-001#case-prof-001', minutes: 20, uses: 'Uses one of today’s 2 cases.', blocked: null }, endedEarly: true },
 } as const;
 
 function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first', choice: keyof typeof CHOICE = 'open'): TrainingHomeData {
