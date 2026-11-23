@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="November 22, 2026">
+    <LegalPage title="Privacy Policy" updated="November 23, 2026">
       <div className="t-body space-y-4 text-(--ink)/85">
         <p>CasePace helps students practice consulting case interviews. This policy explains what we collect, why, and what you control. CasePace is run by its founders and is not yet incorporated; we will update this policy when that changes.</p>
       </div>
