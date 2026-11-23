@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { newProgress, type ProgressMap, type SkillProgress } from '@/lib/drills/progress/engine';
 import { buildPlan, type PlanWeek } from '@/lib/drills/program/plan';
 import {
-  buildWorkout, milestoneGaps, missedMilestoneSkills, planPrescriptionSkill, prerequisiteOrder, rankPrescriptions, setMinutes, weekMilestoneSkills, weekMilestones,
+  buildWorkout, milestoneGaps, pickQuickFix, missedMilestoneSkills, planPrescriptionSkill, prerequisiteOrder, rankPrescriptions, setMinutes, weekMilestoneSkills, weekMilestones,
   type OpenPrescription, type WorkoutInput,
 } from '@/lib/drills/program/workout';
 
@@ -224,6 +224,20 @@ describe('never the same drill twice in a workout (S8)', () => {
     expect(new Set(drills).size).toBe(drills.length);
   });
 
+  it('a weak spot left out once the slots are full still joins a set on its drill (Matt, 22 Nov)', () => {
+    // Matt's Today, 22 Nov: Supporting evidence and Case-specific structure filled the two slots; Structure depth's set is
+    // the same Fix the framework, so the workout's row covers it rather than the Bonus Quick Fix offering it again.
+    const w = buildWorkout(input({
+      progress: progress({ skill_id: 'PS.mece', state: 'learning' }, { skill_id: 'QN.setup', state: 'learning' }, { skill_id: 'PS.case_specific', state: 'learning' }),
+      prescriptions: [rx('PS.mece', 4), rx('QN.setup', 3), rx('PS.case_specific', 1)],
+    }));
+    const drills = w.blocks.map(b => b.drill_id);
+    expect(new Set(drills).size).toBe(drills.length);
+    const shared = w.blocks.find(b => b.skill_id === 'PS.mece')!;
+    expect(shared.also_skills).toContain('PS.case_specific');
+    expect(shared.reason).toContain('Also covers case-specific structure.');
+  });
+
   it('never merges into a quick check', () => {
     const w = buildWorkout(input({
       progress: progress({ skill_id: 'PS.mece', state: 'learning' }, { skill_id: 'PS.case_specific', state: 'learning' }),
@@ -235,3 +249,20 @@ describe('never the same drill twice in a workout (S8)', () => {
     expect(new Set(w.blocks.map(b => b.drill_id)).size).toBe(w.blocks.length);
   });
 });
+
+describe('the Bonus Quick Fix (Matt, 22 Nov)', () => {
+  const ranked = [{ skill_id: 'SY.evidence' }, { skill_id: 'PS.case_specific' }, { skill_id: 'PS.depth' }, { skill_id: 'QN.setup' }];
+  const nextDrill = (id: string) => ({ 'SY.evidence': 'SY-2', 'PS.case_specific': 'PS-4', 'PS.depth': 'PS-4', 'QN.setup': 'QN-4' } as Record<string, string>)[id] ?? null;
+  it('skips skills the workout covers, and skills whose next set is one of the workout\'s drills', () => {
+    // Today: Fix the recommendation (SY.evidence) and Fix the framework (PS.case_specific). Structure depth's set is
+    // Fix the framework too, so the next skill is offered.
+    expect(pickQuickFix(ranked, new Set(['SY.evidence', 'PS.case_specific']), new Set(['SY-2', 'PS-4']), nextDrill)).toEqual({ skill_id: 'QN.setup' });
+  });
+  it('nothing left: no Bonus Quick Fix', () => {
+    expect(pickQuickFix(ranked.slice(0, 3), new Set(['SY.evidence', 'PS.case_specific']), new Set(['SY-2', 'PS-4']), nextDrill)).toBeNull();
+  });
+  it('a skill a set also covers counts as covered', () => {
+    expect(pickQuickFix([{ skill_id: 'PS.depth' }], new Set(['PS.depth']), new Set(), nextDrill)).toBeNull();
+  });
+});
+

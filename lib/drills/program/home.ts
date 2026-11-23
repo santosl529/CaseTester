@@ -14,7 +14,7 @@ import { inProgressSet, setAsideSets } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
+import { blockFor, buildWorkout, pickQuickFix, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
 import { startChoice } from './start-choice';
@@ -36,20 +36,19 @@ const DAY = 86_400_000;
 // prescription's reason. `practice_minutes`: how long a quick-start set on the
 // skill runs, as the set service would pick it; null when it has no live
 // drill. None open: no quick fix. Read only.
-async function quickFixSkill(studentId: string, ranked: OpenPrescription[], covered: Set<string>) {
-  const pick = ranked.find(rx => !covered.has(rx.skill_id));
+// Never a drill today's workout already has (Matt, 22 Nov): a skill whose next set is one of the workout's drills is
+// passed over for the next one (`workoutDrills`).
+async function quickFixSkill(studentId: string, ranked: OpenPrescription[], covered: Set<string>, workoutDrills: Set<string> = new Set()) {
+  const [progress, tiers, ctx, [settings]] = await Promise.all([
+    loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
+    db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
+  ]);
+  const nextOf = (skillId: string) => nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
+  const pick = pickQuickFix(ranked, covered, workoutDrills, id => nextOf(id)?.drill_id ?? null);
   if (!pick) return null;
-  const skillId = pick.skill_id;
-  let practiceMinutes: number | null = null;
-  {
-    const [progress, tiers, ctx, [settings]] = await Promise.all([
-      loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
-      db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
-    ]);
-    const next = nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
-    if (next) practiceMinutes = Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1)));
-  }
-  return { skill_id: skillId, skill_name: getSkill(skillId).name, reason: pick.reason, practice_minutes: practiceMinutes };
+  const next = nextOf(pick.skill_id);
+  const practiceMinutes = next ? Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1))) : null;
+  return { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, reason: pick.reason, practice_minutes: practiceMinutes };
 }
 
 
@@ -94,8 +93,10 @@ export async function homeView(studentId: string, now = new Date()) {
   const building = await buildingFromCase(studentId, program.planSource, now);
   const workoutRow = building ? null : await todayWorkout(studentId, now);
   const workout = workoutRow ? await workoutWithStatus(workoutRow) : null;
-  const covered = new Set((workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress').map(b => b.skill_id));
-  const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered);
+  const left = (workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress');
+  // A block's skill and the skills its set also covers (S8).
+  const covered = new Set(left.flatMap(b => [b.skill_id, ...(b.also_skills ?? [])]));
+  const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered, new Set((workout?.blocks ?? []).map(b => b.drill_id)));
   // Foundations: the lesson opens before the first set of each skill.
   const nextBlock = workout?.blocks.find(b => b.status === 'todo');
   let lessonFirst = false;

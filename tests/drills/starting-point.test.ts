@@ -206,7 +206,7 @@ describe('while the plan is built from a case (Matt, 22 Nov)', () => {
     expect(h).toMatch(/role="status"[^>]*>We’re building your plan/);
     expect(h).not.toContain('Your plan is ready');
     expect(h).not.toContain('Start today’s workout');
-    expect(h).not.toContain('Quick fix');
+    expect(h).not.toContain('Bonus Quick Fix');
   });
 });
 

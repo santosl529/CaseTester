@@ -140,7 +140,7 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
   const w = home.weakest;
   const quickFix = (already: boolean, H: 'h2' | 'h3' = 'h2') => w && !already && (
     <section aria-labelledby="quick-fix" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-      <H id="quick-fix" className="t-label font-semibold text-ink/70">Quick fix</H>
+      <H id="quick-fix" className="t-label font-semibold text-ink/70">Bonus Quick Fix</H>
       {/* The top skill in the shared ranking, with its prescription's own reason (Matt, 15 Nov, D7). */}
       <p className="t-body font-semibold">{w.skill_name}</p>
       <p className="t-small text-ink/70">{w.reason}</p>

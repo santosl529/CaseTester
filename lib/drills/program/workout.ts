@@ -245,6 +245,17 @@ export function buildWorkout(input: WorkoutInput): Workout {
     if (blocks.length >= w.min_sets) break;
     if (!used.has(rx.skill_id)) take('weak', state(rx.skill_id), rx.reason, rx.id, true);
   }
+  // A weak spot left out once the slots were full still joins a set whose drill it shares (Matt, 22 Nov): that set
+  // covers it too, so it never shows up later as the same drill again (Today's Bonus Quick Fix).
+  for (const { rx } of ranked) {
+    if (used.has(rx.skill_id) || transferDue(state(rx.skill_id), input)) continue;
+    const b = blockFor(state(rx.skill_id), input, 'weak');
+    const same = b && blocks.find(x => x.drill_id === b.drill_id && x.slot === 'weak' && x.prescription_id && !x.check);
+    if (!same) continue;
+    used.add(rx.skill_id);
+    same.also_skills = [...(same.also_skills ?? []), rx.skill_id];
+    same.reason = `${same.reason} ${alsoCovers(rx.skill_id)}`;
+  }
   const order: Slot[] = ['review', 'weak', 'unfamiliar'];
   blocks.sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot));
   return { target_minutes: target, review_only: false, blocks: blocks.slice(0, w.max_sets) };
@@ -360,3 +371,16 @@ export function missedMilestoneSkills(current: PlanWeek | null, all: PlanWeek[],
   }
   return [...out];
 }
+
+// Today's Bonus Quick Fix (Matt, 15 and 22 Nov): the first ranked prescription whose skill today's workout doesn't
+// cover (its skills and the skills its sets also cover) and whose next set isn't one of the workout's drills.
+export function pickQuickFix<T extends { skill_id: string }>(ranked: T[], covered: Set<string>, workoutDrills: Set<string>, nextDrill: (skillId: string) => string | null): T | null {
+  for (const rx of ranked) {
+    if (covered.has(rx.skill_id)) continue;
+    const drill = nextDrill(rx.skill_id);
+    if (drill && workoutDrills.has(drill)) continue;
+    return rx;
+  }
+  return null;
+}
+
