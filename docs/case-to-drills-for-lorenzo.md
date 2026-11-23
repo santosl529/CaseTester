@@ -58,6 +58,10 @@ Matt's fixes from the pre-pilot audit, on this branch so they ship with shadow m
 
 **Vercel settings these need** (Production): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (from Matt's Sentry project) and `REPORTS_ALLOWED_EMAILS` (the founders' emails). From the audit's blocker (B1, not code): `RATE_LIMIT_SIGN_UPS_PER_HOUR` (for example 200) and `RATE_LIMIT_CLUB_CODES_PER_HOUR` (for example 100), so a club signing up together on one Wi-Fi isn't locked out.
 
+## Merged 23 Nov 2026
+
+`pilot-dashboard` (with Drills-Update) is merged and deployed (main a2f5fc15). Left for you: Switching case results on, step 5 (Vercel `CASE_TO_DRILLS` `shadow` → `on`, then redeploy), and optionally `PAGE_VIEW_SECRET`.
+
 ## Drills-Update (Matt, 21 Nov 2026): what changes in the case product
 
 Branch `Drills-Update`, cut from main bfff0622, with `drill-update` (steps 3–6, items 7–11 below) merged in at Matt's word. Pushed, not merged. The AI interviewer, the scoring passes and the voice agent are untouched. Diff: `git diff main...Drills-Update`.
