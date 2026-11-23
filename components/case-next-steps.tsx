@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { StartSetButton } from '@/components/drills/start-set-button';
+import { buttonVariants } from '@/components/ui/button';
 import { TrackedLink } from '@/components/tracked-link';
 import { PrepareNextSteps } from '@/components/prepare-next-steps';
 import type { NextStepsView } from '@/lib/drills/progress/report-view';
@@ -10,10 +11,13 @@ import { coveredBy, practicedSkills, type NextStepsSnapshot } from '@/lib/drills
 // arrived; "done" and readiness come only from drill results. Shown only when
 // CASE_TO_DRILLS is on (lib/drills/progress/report-view.ts).
 
-// S8 (Matt, 21 Nov; text for his approval): a skill whose practice set an earlier skill's set covers.
-export const coveredLine = (s: NextStepsSnapshot, coverId: string) => {
+// S8: a skill whose practice set an earlier skill's set covers. Its link (Matt, 22 Nov: option 2) jumps to that card,
+// which the page outlines (:target), so the Start practice to press is plain; screen readers hear which set it is.
+export const COVERED_LINK = 'Practice with the set above';
+export const stepAnchor = (skillId: string) => `next-step-${skillId.replace(/[^\w-]/g, '-')}`;
+export const coveredDetail = (s: NextStepsSnapshot, coverId: string) => {
   const cover = s.skills.find(k => k.skill_id === coverId);
-  return `The ${cover?.practice?.drill_name ?? 'practice'} set above covers this too.`;
+  return `: the ${cover?.practice?.drill_name ?? 'practice'} set under ${cover?.name ?? 'the skill above'} also trains this skill`;
 };
 const COUNT = ['', 'The skill that would most improve your next case.', 'The two skills that would most improve your next case, most important first.', 'The three skills that would most improve your next case, most important first.'];
 const WHEN_DONE = ['', 'When it is done, try', 'When both are done, try', 'When all three are done, try'];
@@ -85,7 +89,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
       {s.skills.length > 0 && (
         <ol className="space-y-3">
           {s.skills.map((x, i) => (
-            <li key={x.skill_id} className="space-y-2 rounded-panel border border-ink/12 bg-white p-5">
+            <li key={x.skill_id} id={stepAnchor(x.skill_id)} className="scroll-mt-24 space-y-2 rounded-panel border border-ink/12 bg-white p-5 target:border-cobalt target:ring-2 target:ring-cobalt">
               <h3 className="t-body font-semibold">{x.name}</h3>
               <p className="t-body">{x.why}</p>
               <Quote text={x.quote} />
@@ -105,7 +109,11 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
                     <span className="t-small text-ink/70">{x.practice.drill_name} · Level {x.practice.level} · about {x.practice.minutes} min</span>
                   </>
                 )}
-                {x.covered_by && <span className="t-small text-ink/70">{coveredLine(s, x.covered_by)}</span>}
+                {x.covered_by && (
+                  <a href={`#${stepAnchor(x.covered_by)}`} className={buttonVariants({ variant: 'outline' })}>
+                    {COVERED_LINK} <span aria-hidden="true">↑</span><span className="sr-only">{coveredDetail(s, x.covered_by)}</span>
+                  </a>
+                )}
               </div>
             </li>
           ))}

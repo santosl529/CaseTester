@@ -43,6 +43,8 @@ describe('S8: one set covering two skills', () => {
   it('the report: the first skill’s Start practice covers the second; the second has no button of its own', () => {
     const h = html('report-next-steps-shared').replace(/&quot;/g, '"');
     expect(h.match(/>Start practice</g)?.length).toBe(2);
-    expect(h).toContain('The Spot the gap set above covers this too.');
+    // Matt, 22 Nov (option 2): a link to the covering card, which the page outlines when it's the target.
+    expect(h).toMatch(/<a [^>]*href="#next-step-PS-mece"[^>]*>Practice with the set above <span aria-hidden="true">↑<\/span><span class="sr-only">: the Spot the gap set under MECE structure also trains this skill<\/span><\/a>/);
+    expect(h).toMatch(/<li id="next-step-PS-mece" class="[^"]*target:ring-2/);
   });
 });
