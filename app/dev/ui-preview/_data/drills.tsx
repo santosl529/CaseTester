@@ -107,7 +107,7 @@ function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first', choice
       : kind === 'done' ? { ...WORKOUT, status: 'completed' as const, blocks: WORKOUT.blocks.map((b, i) => ({ ...b, status: 'done' as const, set_id: 'preview-set', score: [0.9, 0.85, 0.75][i] ?? 0.8 })) }
       : kind === 'intro' || kind === 'first' ? { ...WORKOUT, status: 'planned' as const, blocks: WORKOUT.blocks.map(b => ({ ...b, status: 'todo' as const, set_id: null, score: null })) }
       : WORKOUT,
-    lesson_first: false, intro_first: kind === 'intro', estimated_minutes: kind === 'new' ? null : 21,
+    lesson_first: false, lesson_first_blocks: [], intro_first: kind === 'intro', estimated_minutes: kind === 'new' ? null : 21,
     diagnose_today: false, next_case: kind === 'new' || kind === 'intro' ? null : { case_id: 'prof-002', title: 'Larkspur Pricing', retake: false, matched: { area: true, tier: true } },
     extra: kind === 'done' ? [block('weak', 'QN.percentages', 'QN-2', 'Percentages slipped in this workout.', 'todo')] : [], rediagnose: null,
   };

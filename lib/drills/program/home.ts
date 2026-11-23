@@ -104,6 +104,16 @@ export async function homeView(studentId: string, now = new Date()) {
     const lesson = await lessonForSkill(nextBlock.skill_id);
     lessonFirst = Boolean(lesson && !(await hasSeenLesson(studentId, lesson.lesson_id)));
   }
+  // Any set can be done first (Matt, 22 Nov): on Foundations, each set still not started whose skill's lesson isn't
+  // read yet opens that lesson first, as the main button does.
+  const lessonFirstBlocks: number[] = [];
+  if (program.track === 'foundations' && workout) {
+    for (const [i, b] of workout.blocks.entries()) {
+      if (b.status !== 'todo') continue;
+      const lesson = await lessonForSkill(b.skill_id);
+      if (lesson && !(await hasSeenLesson(studentId, lesson.lesson_id))) lessonFirstBlocks.push(i);
+    }
+  }
   // Foundations reads "How a case interview works" first, before week 1
   // (Matt, 2026-10-17): until it's seen, the home leads with it.
   const introFirst = program.track === 'foundations' && introLesson() !== null && !(await hasSeenLesson(studentId, INTRO_LESSON_ID));
@@ -123,7 +133,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, building_plan: building, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, building_plan: building, resume, unfinished, start_choice, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, lesson_first_blocks: lessonFirstBlocks, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,
