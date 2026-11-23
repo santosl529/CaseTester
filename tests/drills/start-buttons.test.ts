@@ -123,6 +123,16 @@ describe('each page starts the drill its button names', () => {
   it('Today: Continue workout resumes its block (its set in progress or set aside), not some other set', () => {
     expect(find('training-home', 'Continue workout').body).toEqual({ workout_id: 'preview-workout', block: 1 });
   });
+  it('Today: every set not done can be started on its own; Continue workout still suggests the next (Matt, 22 Nov)', () => {
+    const rows = buttons('training-home').filter(b => (b.label === 'Start' || b.label === 'Resume') && b.body.workout_id);
+    // The preview's workout: block 0 done, blocks 1 (the suggested next) and 2 not started.
+    expect(rows.map(b => [b.label, b.body.block])).toEqual([['Start', 1], ['Start', 2]]);
+    expect(find('training-home', 'Continue workout').body).toEqual({ workout_id: 'preview-workout', block: 1 });
+  });
+  it('Today, before the first set: each row has its own Start', () => {
+    const rows = buttons('training-home-first').filter(b => b.label === 'Start' && b.body.workout_id).map(b => b.body.block);
+    expect(rows.length).toBeGreaterThan(1);
+  });
   it('Today: the quick practice starts its skill', () => {
     expect(find('training-home', /^Practice arithmetic/).body).toEqual({ skill_id: 'QN.arithmetic', quick_start: true });
   });

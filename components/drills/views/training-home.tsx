@@ -238,6 +238,17 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
   // its extras once done, the quick fix, this week, the next case, a fresh
   // diagnostic, and the feedback question folded at the end.
   const planFirst = Boolean(getPlan || planReady);
+  // Each set not done can be started on its own (Matt, 22 Nov: "suggest what to do next, but always give a choice"):
+  // the Cobalt ring and the main button still suggest the next one. In progress: Resume; on Foundations, a skill's
+  // unread lesson (or the intro) comes first, as with the main button.
+  const blockStart = (b: NonNullable<typeof workout>['blocks'][number], i: number) => {
+    if (!workout || (b.status !== 'todo' && b.status !== 'in_progress')) return null;
+    const name = getDrill(b.drill_id).name;
+    if (b.status === 'in_progress') return <StartSetButton body={{ workout_id: workout.id, block: i }} label="Resume" name={`Resume ${name}`} size="sm" variant="outline" />;
+    if (home.intro_first) return <Link href="/drills/learn/intro?source=auto" aria-label={`Start ${name}`} className={buttonVariants({ size: 'sm', variant: 'outline' })}>Start</Link>;
+    if (home.lesson_first_blocks.includes(i)) return <Link href={`/drills/learn/${encodeURIComponent(b.skill_id)}?source=auto&workout=${workout.id}&block=${i}`} aria-label={`Start ${name}`} className={buttonVariants({ size: 'sm', variant: 'outline' })}>Start</Link>;
+    return <StartSetButton body={{ workout_id: workout.id, block: i }} label="Start" name={`Start ${name}`} size="sm" variant="outline" />;
+  };
   const workoutCard = workout && workout.blocks.length > 0 && (
     <section aria-labelledby="workout" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -252,7 +263,10 @@ export function TrainingHome({ home, checkin, interview = null, caseEndedEarly =
             <div className="min-w-0 flex-1 space-y-0.5">
               <p className="flex flex-wrap items-baseline justify-between gap-2">
                 <span><span className="text-ink/70">{SLOT[b.slot]} · </span><span className="font-semibold">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
-                <span className="text-ink/70 tabular-nums">{b.status === 'done' ? (b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done') : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
+                <span className="flex items-center gap-3">
+                  <span className="text-ink/70 tabular-nums">{b.status === 'done' ? (b.score !== null ? scoreLine(b.score, getDrill(b.drill_id).pass_bar) : 'Done') : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
+                  {blockStart(b, i)}
+                </span>
               </p>
               <p className="text-ink/70">{b.reason}</p>
             </div>
